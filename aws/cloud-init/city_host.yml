@@ -1,0 +1,22 @@
+#cloud-config
+---
+system_info:
+  default_user:
+    name: alan
+
+ssh_import_id:
+  - gh:stephenprater
+  - gh:corbinlc
+  - gh:MatthewTighe
+
+hostname: ${hostname}
+
+runcmd:
+  - 'echo "Running IP Addr Replace"'
+  - 'sed -i "s/api_key.*/api_key: ${datadog_api_key}/" /etc/datadog-agent/datadog.yaml'
+  - 'sed -i "s/advertise_addr.*/advertise_addr = \"$(ec2metadata --local-ipv4)\"/" /etc/consul.hcl'
+  - 'sed -i "s/bootstrap_expect.*/bootstrap_expect = ${city_hosts}/" /etc/consul.hcl'
+  - 'sed -i "s/http.*/http = \"$(ec2metadata --local-ipv4)\"/" /etc/nomad.hcl'
+  - 'sed -i "s/rpc.*/rpc = \"$(ec2metadata --local-ipv4)\"/" /etc/nomad.hcl'
+  - 'sed -i "s/serf.*/serf = \"$(ec2metadata --local-ipv4)\"/" /etc/nomad.hcl'
+  - 'sed -i "s/bootstrap_expect.*/bootstrap_expect = ${city_hosts}/" /etc/nomad.hcl'

@@ -9,3 +9,7 @@ output "aws_secret_key" {
 output "username" {
   value = "${aws_iam_user.user.name}"
 }
+
+output "github_name" {
+  value = "${github_membership.github.username}"
+}

@@ -32,3 +32,23 @@ can't do something like reference the "Team" we created in Github in the User
 Module, we have to pass it in explicity.
 
 Maybe Terraform 0.12 solves this - it makes a lot of changes to HCL.
+
+
+## Tagging Resources
+
+Each resource should be tagged with _at least_ two tags - it's "Name" and it's "District"
+
+"District" is either "city" or "sea"
+
+City servers run Userland / Foxhole infrastructure - NOT USER WORKLOADS
+Sea servers run user workloads.
+
+
+The main distinction is that Sea servers have limited monitoring and logging.
+
+Some resources are also tagged with "Usage" - "Usage" is either "app" or "infra"
+
+"app" Usage indicates that a resource is used for actually executing a
+particular app, "infra" indicates that it's infrastructure or tooling support.
+
+Individual containers and resource are labeled with the "app" they support.

@@ -19,3 +19,7 @@ variable "userland_team_id" {
   description = "Userland Team ID"
 }
 
+variable "name" {
+  description = "Users Real Name"
+}
+

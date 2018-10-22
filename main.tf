@@ -1,4 +1,6 @@
 variable "github_token" {}
+variable "datadog_app_key" {}
+variable "datadog_api_key" {}
 
 provider "aws" {
   version        = "~> 1.34"
@@ -11,8 +13,15 @@ provider "github" {
   token        = "${var.github_token}"
 }
 
+provider "datadog" {
+  api_key = "${var.datadog_api_key}"
+  app_key = "${var.datadog_app_key}"
+}
+
 module "aws" {
   source = "./aws"
+  github_users = "${module.users.github_users}"
+  datadog_api_key = "${var.datadog_api_key}"
 }
 
 module "github" {

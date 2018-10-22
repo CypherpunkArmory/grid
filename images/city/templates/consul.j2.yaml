@@ -1,0 +1,11 @@
+init_config:
+
+instances:
+    - url: http://localhost:8500
+      catalog_checks: true
+      self_leader_check: true
+      new_leader_checks: true
+      network_latency_checks: true
+
+      tags:
+        - 'consul:{{ ansible_hostname }}'

@@ -27,3 +27,10 @@ resource "github_team_membership" "userland" {
   username = "${var.github_name}"
   role     = "${var.github_role == "admin" ? "maintainer" : "member" }"
 }
+
+resource "datadog_user" "user" {
+  email = "${local.username}"
+  handle = "${local.username}"
+  name = "${var.name}"
+  is_admin = "${var.github_role == "admin" ? true : false}"
+}

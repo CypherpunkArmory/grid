@@ -5,6 +5,7 @@ module "prater" {
   keybase_name = "stephenprater"
   github_name = "stephenprater"
   github_role = "member"
+  name = "Stephen Prater"
   userland_team_id = "${var.userland_team_id}"
 }
 
@@ -16,6 +17,7 @@ module "corbin" {
   keybase_name = "corbinlc"
   github_name = "corbinlc"
   github_role = "admin"
+  name = "Corbin Champion"
   userland_team_id = "${var.userland_team_id}"
 }
 
@@ -27,6 +29,7 @@ module "andrew" {
   keybase_name = "andrewscibek"
   github_name = "AndrewScibek"
   github_role = "member"
+  name = "Andrew Scibek"
   userland_team_id = "${var.userland_team_id}"
 }
 
@@ -38,6 +41,7 @@ module "matthew" {
   keybase_name = "matt_tighe"
   github_name = "MatthewTighe"
   github_role = "admin"
+  name = "Matthew Tighe"
   userland_team_id = "${var.userland_team_id}"
 }
 
@@ -49,6 +53,7 @@ module "thomas" {
   keybase_name = "lithogen"
   github_name = "luongthomas"
   github_role = "member"
+  name = "Thomas Luong"
   userland_team_id = "${var.userland_team_id}"
 }
 
@@ -60,6 +65,7 @@ resource "aws_iam_group_membership" "admins" {
     "${module.corbin.username}"
   ]
 }
+
 resource "aws_iam_group_membership" "developers" {
   name = "developers_membership"
   group = "${var.aws_dev_group}"
@@ -71,4 +77,3 @@ resource "aws_iam_group_membership" "developers" {
     "${module.thomas.username}"
   ]
 }
-

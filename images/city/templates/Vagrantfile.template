@@ -1,0 +1,15 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "city_v{{user `version`}}.box"
+  config.ssh.username = 'alan'
+  config.ssh.private_key_path = "../provision"
+
+  config.vm.synced_folder '.', '/vagrant', disabled: true
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.customize ["modifyvm", :id, "--uart1", "off"]
+    vb.customize  ["storageattach",  :id,  "--storagectl", "IDE",  "--port", "0", "--device", "0", "--type", "dvddrive", "--medium", "./init.iso"]
+  end
+end

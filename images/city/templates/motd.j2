@@ -1,0 +1,11 @@
+#!/bin/sh
+echo "\n"
+export TERM=xterm
+cat /etc/update-motd.d/city.ansi
+echo "\n"
+echo "City Host: $(hostname)"
+echo "-- $(tput setaf 7)$(uname -a)/$(uname -r)/$(uname -m)"
+echo "-- $(grep -m1 "^model name" /proc/cpuinfo | sed -e "s/.*: //" -e "s:\s\+:/:g")"
+echo "-- Logging is enabled on this machine $(cat /proc/uptime)"
+echo "-- $(tput setaf 1)DO NOT RUN USER WORKLOADS ON CITY HOSTS!"
+echo "$(tput sgr0)"
