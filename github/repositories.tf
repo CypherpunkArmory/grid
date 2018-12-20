@@ -33,3 +33,21 @@ resource "github_repository" "holepunch" {
 
   allow_merge_commit = "false"
 }
+
+resource "github_repository" "holepunch cli" {
+  name        = "holepunch cli"
+  description = "Holepunch CLI"
+
+  private = "true"
+
+  has_downloads = "true"
+  has_issues    = "true"
+  has_wiki      = "false"
+  has_projects  = "false"
+
+  lifecycle {
+    prevent_destroy = true
+  }
+
+  allow_merge_commit = "false"
+}
