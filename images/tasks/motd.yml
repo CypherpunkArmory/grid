@@ -1,0 +1,24 @@
+---
+- name: Setup MOTD
+  block:
+    - name: Clear MOTD
+      shell: /bin/rm /etc/update-motd.d/* warn=False
+
+    - name: Copy Logo
+      copy:
+        src: 'templates/{{ logo }}.ansi'
+        dest: /etc/update-motd.d/{{ logo }}.ansi
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Set MOTD
+      template:
+        src: 'templates/motd.j2'
+        dest: /etc/update-motd.d/00-userland-{{ district }}
+        owner: root
+        mode: 0755
+
+    - name: Update MOTD
+      shell: /bin/run-parts /etc/update-motd.d
+

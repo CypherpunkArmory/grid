@@ -1,6 +1,7 @@
 {
   "variables": {
-    "version": "0.0.3"
+    "version": "0.0.0",
+    "template": "lb"
   },
   "builders": [{
       "type": "virtualbox-ovf",
@@ -9,7 +10,7 @@
       "ssh_username": "ubuntu",
       "ssh_private_key_file": "../provision",
       "http_directory": "http",
-      "vm_name": "city-{{user `version`}}",
+      "vm_name": "lb-{{user `version`}}",
       "boot_wait": "1s",
       "boot_command": [
         "<esc><esc><esc><esc><esc><esc><esc><esc><esc><esc><esc><esc>",
@@ -23,7 +24,7 @@
       "guest_additions_mode": "disable",
       "export_opts": [
         "--vsys", "0",
-        "--description", "City Host",
+        "--description", "Load Balancer Host",
         "--version", "{{user `version`}}"
       ],
       "headless": true
@@ -32,7 +33,7 @@
   "provisioners": [
     {
       "type": "shell-local",
-      "command": "ansible-playbook --private-key ../provision --user ubuntu -i ../inventory city.yml"
+      "command": "ansible-playbook --private-key ../provision --user ubuntu -i ../inventory lb.yml"
     },
     {
       "type": "shell-local",
@@ -43,7 +44,7 @@
     {
       "type": "vagrant",
       "vagrantfile_template": "../tasks/templates/Vagrantfile.template",
-      "output": "city_v{{user `version`}}.box"
+      "output": "{{user `template`}}_v{{user `version`}}.box"
     }
   ]
 }

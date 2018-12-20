@@ -1,0 +1,50 @@
+---
+- name: Clean up the server
+  block:
+   - name: Empty the `/tmp`
+     command: rm -rf /tmp/*
+
+   - name: Kill the dmesg, etc
+     command: find /var/log -type f -exec cp /dev/null {} \;
+
+   - name: We don't need no stinkin' cloud-init
+     command: cloud-init clean
+
+   - name: Re-enable unattended upgrades
+     block:
+      - command: systemctl enable unattended-upgrades.service
+      - command: systemctl enable apt-daily-upgrade.timer
+      - command: systemctl enable apt-daily.timer
+      - command: systemctl enable fstrim.timer
+      - command: systemctl unmask systemd-tmpfiles-clean.timer
+
+   - name: Rotate the log
+     command: journalctl --rotate
+
+   - name: Vacuum anything older than 1s
+     command: journalctl --vacuum-time=0s
+
+   - name: Clear Consul / Nomad / Docker Data
+     block:
+       - stat: path=/var/lib/consul
+         register: consul
+
+       - name: Clear Consul
+         command: rm -rf /var/lib/consul/*
+         when: consul.stat.exists
+
+       - stat: path=/var/lib/nomad
+         register: nomad
+
+       - name: Clear Nomad
+         command: rm -rf /var/lib/nomad/*
+         when: nomad.stat.exists
+
+       - stat: path=/var/lib/docker
+         register: docker
+
+       - name: Clear Docker
+         command: rm -rf /var/lib/docker/*
+         when: docker.stat.exists
+
+

@@ -1,0 +1,15 @@
+#!/bin/sh
+
+echo "Running IP Addr Replace"
+
+if [ -f /etc/consul.hcl ]; then
+  sed -i "s/advertise_addr.*/advertise_addr = \"$(ec2metadata --local-ipv4)\"/" /etc/consul.hcl
+fi
+
+if [ -f /etc/nomad.hcl ]; then
+  sed -i "s/http.*/http = \"$(ec2metadata --local-ipv4)\"/" /etc/nomad.hcl
+  sed -i "s/rpc.*/rpc = \"$(ec2metadata --local-ipv4)\"/" /etc/nomad.hcl
+  sed -i "s/serf.*/serf = \"$(ec2metadata --local-ipv4)\"/" /etc/nomad.hcl
+fi
+
+exit 0

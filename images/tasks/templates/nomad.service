@@ -1,0 +1,20 @@
+[Unit]
+Description=Nomad
+Documentation=https://nomadproject.io/docs/
+StartLimitIntervalSec=10
+Wants=network-online.target
+After=network-online.target docker.service set-ip.service consul.service
+
+[Service]
+KillMode=process
+KillSignal=SIGINT
+ExecStart=/usr/bin/nomad agent -config /etc/nomad.hcl
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=2
+StartLimitBurst=3
+LimitNOFILE=65536
+User=nomad
+
+[Install]
+WantedBy=multi-user.target

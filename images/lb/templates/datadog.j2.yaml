@@ -11,11 +11,9 @@ api_key: {{ dd_api_key }}
 tags:
   - district:{{ district }}
   - env:{{ env }}
-  - role:host
+  - role:load_balancer
   - consul_agent
-  - consul_server
-  - nomad_agent
-  - nomad_server
+  - fabio
 
 # Collect AWS EC2 custom tags as agent tags
 collect_ec2_tags: true

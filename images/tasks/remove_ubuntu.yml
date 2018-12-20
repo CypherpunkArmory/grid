@@ -1,0 +1,23 @@
+- name: Remove the Ubuntu User
+  hosts: all
+  remote_user: alan
+  become: yes
+  become_user: root
+  become_method: sudo
+
+  tasks:
+    - name: Wait a tick!
+      wait_for: timeout=2
+
+    - name: No more Ubuntu User
+      # this things fails sometimes, but appears to work anyway.
+      ignore_errors: true
+      command: userdel -fr ubuntu
+
+    - name: Clean the Server
+      import_tasks: clear_data.yml
+
+    - name: Graceful Shutdown
+      command: bash -lc 'sleep 1 && systemctl halt'
+      async: 30
+      poll: 0

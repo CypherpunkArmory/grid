@@ -3,11 +3,23 @@ data "aws_ami" "city_ami" {
 
   filter {
     name = "name"
-    values = ["City AMI *"]
+    values = ["CITY AMI *"]
   }
 
   owners = ["578925084144"]
 }
+
+data "aws_ami" "lb_ami" {
+  most_recent = true
+
+  filter {
+    name = "name"
+    values = ["LB AMI *"]
+  }
+
+  owners = ["578925084144"]
+}
+
 
 variable "city_hosts" {
   default = 3
@@ -32,6 +44,12 @@ resource "aws_instance" "city_host" {
   user_data = "${data.template_file.city_cloud_init.*.rendered[count.index]}"
   iam_instance_profile = "${aws_iam_instance_profile.city_host_profile.name}"
   subnet_id = "${aws_subnet.city_vpc_subnet.id}"
+  monitoring = true
+  vpc_security_group_ids = ["${aws_security_group.city_servers.id}"]
+
+  lifecycle {
+    create_before_destroy = 1
+  }
 
   tags {
     District = "city"
@@ -40,6 +58,36 @@ resource "aws_instance" "city_host" {
     Role = "host"
   }
 }
+
+data "template_file" "city_lb_cloud_init" {
+  template = "${file("${path.module}/cloud-init/city_lb.yml")}"
+  vars {
+    hostname = "city-lb"
+    lb_district = "city"
+  }
+}
+
+resource "aws_instance" "city_lb" {
+  ami = "${data.aws_ami.lb_ami.id}"
+  instance_type = "t2.micro"
+  user_data = "${data.template_file.city_lb_cloud_init.rendered}"
+  iam_instance_profile = "${aws_iam_instance_profile.city_host_profile.name}"
+  subnet_id = "${aws_subnet.city_vpc_subnet.id}"
+  monitoring = true
+  vpc_security_group_ids = ["${aws_security_group.city_servers.id}"]
+
+  lifecycle {
+    create_before_destroy = 1
+  }
+
+  tags {
+    District = "city"
+    Usage = "app"
+    Name = "city_lb"
+    Role = "lb"
+  }
+}
+
 
 resource "aws_vpc" "city_vpc" {
   cidr_block                       = "172.31.0.0/16"

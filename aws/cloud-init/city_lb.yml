@@ -11,3 +11,6 @@ ssh_import_id:
   - gh:MatthewTighe
 
 hostname: ${hostname}
+
+bootcmd:
+  - 'sed -i "s/datacenter.*/datacenter = \"${lb_district}\"/" /etc/consul.hcl'

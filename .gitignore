@@ -4,3 +4,4 @@ planfile
 packer-cache
 .vdi
 .vagrant
+.DS_Store

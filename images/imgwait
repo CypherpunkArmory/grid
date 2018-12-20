@@ -1,0 +1,32 @@
+#!/bin/bash
+
+image="$1"
+upper_image=$(echo $image | awk '{print toupper($0)}')
+version="$2"
+current_status=""
+date=$(date)
+
+import_task=$(aws ec2 import-snapshot \
+    --description "$upper_image AMI $date" \
+    --disk-container "Description=\"$image AMI - $version\",Format=\"vmdk\",UserBucket={S3Bucket=\"city-amis\", S3Key=\"$image-$version-disk001.vmdk\"}")
+
+echo $import_task
+
+import_task_id=$(echo $import_task | jq -r '.ImportTaskId')
+
+while [ "$current_status" != "completed" ]; do
+    echo "$current_status : $amount"
+    described=$(aws ec2 describe-import-snapshot-tasks)
+    current_status=$(echo $described | jq -r ".ImportSnapshotTasks[] | select(.ImportTaskId==\"$import_task_id\") | .SnapshotTaskDetail.Status")
+    amount=$(echo $described | jq -r ".ImportSnapshotTasks[] | select(.ImportTaskId==\"$import_task_id\") | .SnapshotTaskDetail.Progress")
+    sleep 2
+done
+
+snapshot=$(echo $described | jq -r ".ImportSnapshotTasks[] | select(.ImportTaskId==\"$import_task_id\") | .SnapshotTaskDetail.SnapshotId")
+
+aws ec2 register-image \
+    --name "$upper_image AMI $version" \
+    --virtualization-type "hvm" \
+    --root-device-name "/dev/xvda" \
+    --architecture "x86_64" \
+    --block-device-mappings "DeviceName=\"/dev/xvda\",Ebs={DeleteOnTermination=true,SnapshotId=\"$snapshot\",VolumeSize=8,VolumeType=\"gp2\"}"

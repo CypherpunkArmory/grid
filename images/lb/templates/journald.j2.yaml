@@ -1,0 +1,10 @@
+logs:
+  - type: journald
+    path: /var/log/journal/
+
+    exclude_units:
+      - datadog-agent.service
+      - datadog-agent-trace.service
+      - datadog-agent-process.service
+
+

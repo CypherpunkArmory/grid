@@ -1,0 +1,27 @@
+[Unit]
+Description=Fabio
+StartLimitIntervalSec=10
+Wants=network-online.target
+After=consul.service
+
+[Service]
+LimitMEMLOCK=infinity
+LimitNOFILE=65535
+Type=simple
+# unprivileged uid and gid
+User=fabio
+Group=fabio
+WorkingDirectory=/
+ExecStart=/usr/bin/fabio -cfg /etc/fabio.conf
+Restart=always
+PrivateDevices=yes
+PrivateTmp=yes
+ProtectSystem=full
+ProtectHome=yes
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+NoNewPrivileges=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX AF_NETLINK
+
+[Install]
+WantedBy=multi-user.target
+

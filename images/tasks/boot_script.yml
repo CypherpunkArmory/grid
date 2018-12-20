@@ -1,0 +1,20 @@
+---
+# I give up getting cloud-init to work runcmd is fucking useless.
+- name: Configure and Install Boot Script
+  block:
+   - name: Install Set-IP script
+     template:
+       src: templates/set-ip.sh.template
+       dest: /usr/bin/set-ip.sh
+       owner: root
+       group: root
+       mode: 0755
+
+   - name: Install Set-IP one-shot service
+     copy:
+       src: templates/set-ip.service
+       dest: /usr/lib/systemd/user/set-ip.service
+
+   - name: Enable Set-IP service at boot
+     command: systemctl enable /usr/lib/systemd/user/set-ip.service
+

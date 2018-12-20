@@ -1,0 +1,64 @@
+---
+- name: Provisioning
+  hosts: all
+  become: yes
+  become_user: root
+  become_method: sudo
+
+  vars:
+    # replace me with an env lookup
+    dd_api_key: 4e1033fd1fe7359d63ff27660ba114af
+    # eeeeeeehhhhh
+    env: prod
+    district: lb
+    consul_district: city
+    logo: shiva
+
+  tasks:
+   - import_tasks: ../tasks/common.yml
+   - include_tasks: ../tasks/motd.yml
+   - import_tasks: ../tasks/create_login_user.yml
+   - import_tasks: ../tasks/amazon.yml
+   - include_tasks: ../tasks/consul.yml
+   - include_tasks: ../tasks/boot_script.yml
+
+   - name: Configure and Install Fabio
+     block:
+       - name: Download Fabio Binaries
+         get_url:
+           url: https://github.com/fabiolb/fabio/releases/download/v1.5.10/fabio-1.5.10-go1.11.1-linux_amd64
+           dest: /usr/bin/fabio
+
+       - name: Make Sure Fabio Is Executable
+         file:
+           path: /usr/bin/fabio
+           mode: 0755
+
+       - name: Create Fabio User
+         user:
+           name: fabio
+           shell: /usr/bin/nologin
+           system: yes
+           createhome: no
+
+       - name: Upload SystemD Unit
+         copy:
+           src: templates/fabio.service
+           dest: /usr/lib/systemd/user/fabio.service
+
+       - name: Copy Fabio Conf File
+         template:
+           src: templates/fabio.j2.conf
+           dest: /etc/fabio.conf
+           owner: fabio
+           group: fabio
+           mode: 0644
+
+       - name: Enable Fabio at Boot
+         command: systemctl enable /usr/lib/systemd/user/fabio.service
+
+   - include_tasks: ./tasks/datadog.yml
+
+- import_playbook: ../tasks/remove_ubuntu.yml
+
+

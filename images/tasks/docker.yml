@@ -1,0 +1,68 @@
+---
+- name: Configure and install APT Packages for Docker
+  block:
+  - name: Install KMOD
+    apt:
+      name: kmod
+      state: present
+      update_cache: yes
+
+  - name: modprobe overlayfs
+    modprobe:
+      name: overlay
+      state: present
+
+  - name: modprobe iptables
+    modprobe:
+      name: ip_tables
+
+  - name: start these modules on boot
+    copy:
+      dest: /etc/modules-load.d/docker-requirements.conf
+      content: |
+        overlay
+        ip_tables
+
+- name: Configure and Install Docker
+  block:
+  # Fix for https://github.com/docker/docker/issues/23347
+  - name: Install dmsetup for Ubunutu 18.01
+    apt:
+      pkg: dmsetup
+      state: present
+
+  - name: Install AppArmor
+    apt:
+      pkg: apparmor
+      state: present
+
+  - name: Run DMSetup
+    command: dmsetup mknodes
+
+  - name: Download Docker CE .deb
+    get_url:
+      url: https://download.docker.com/linux/ubuntu/dists/bionic/pool/stable/amd64/docker-ce_18.06.1~ce~3-0~ubuntu_amd64.deb
+      dest: /tmp/docker-ce_18.06~ce~3-0~ubunutu_amd64.deb
+
+  - name: Install Docker CE
+    apt:
+      deb: /tmp/docker-ce_18.06~ce~3-0~ubunutu_amd64.deb
+
+  - name: Remove Docker .deb
+    file:
+      path: /tmp/docker-ce_18.06~ce~3-0~ubunutu_amd64.deb
+      state: absent
+
+  - name: Add the Docker User
+    user:
+      name: docker
+      shell: /usr/sbin/nologin
+      groups: docker
+      system: yes
+      createhome: no
+
+  - name: Enable Docker Unit
+    systemd:
+      daemon_reload: yes
+      enabled: yes
+      name: docker

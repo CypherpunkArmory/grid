@@ -1,0 +1,6 @@
+# AWS has some fucked up boot requirements
+---
+- name: Copy a Boot Config Template File
+  copy:
+    src: templates/extlinux.conf
+    dest: /boot/extlinux/extlinux.conf
