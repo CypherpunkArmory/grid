@@ -1,0 +1,179 @@
+# https://taskfile.org
+
+version: '2'
+
+vars:
+  GREETING: Hello, World!
+  DISTRICT: city
+  VER:
+
+output: prefixed
+
+tasks:
+
+  build:
+    prefix: 'Build {{.DISTRICT}} {{.VER}}'
+    desc: Build AMIs for DISTRICT and VER
+    dir: "{{.DISTRICT}}"
+    status:
+      - test -f "{{.DISTRICT}}_v{{.VER}}.box"
+    cmds:
+      - packer build -var 'version={{.VER}}' -var 'template={{.DISTRICT}}' {{.DISTRICT}}_host.json
+
+  extract:
+    prefix: 'Extract {{.DISTRICT}} {{.VER}}'
+    desc: Extract VMDK from .box file
+    deps:
+      - task: build
+        vars: {DISTRICT: "{{.DISTRICT}}", VER: "{{.VER}}"}
+    dir: "{{.DISTRICT}}"
+    sources:
+      - "{{.DISTRICT}}_v{{.VER}}.box"
+    generates:
+      - "{{.DISTRICT}}-{{.VER}}-disk001.vmdk"
+    method: checksum
+    cmds:
+      - tar xzvf "{{.DISTRICT}}_v{{.VER}}.box"
+
+  upload:
+    prefix: 'Upload {{.DISTRICT}} {{.VER}}'
+    desc: Upload VMDK to S3
+    dir: "{{.DISTRICT}}"
+    deps:
+      - task: extract
+        vars: {DISTRICT: "{{.DISTRICT}}", VER: "{{.VER}}"}
+    dirs: "{{.DISTRICT}}"
+    sources:
+      - "{{.DISTRICT}}-{{.VER}}-disk001.vmdk"
+    status:
+      - aws s3api head-object --bucket city-amis --key {{.DISTRICT}}-{{.VER}}-disk001.vmdk
+    cmds:
+      - aws s3 cp {{.DISTRICT}}-{{.VER}}-disk001.vmdk s3://city-amis
+
+  import-snapshot:
+    prefix: 'Import Snapshot {{.DISTRICT}} {{.VER}}'
+    desc: Import VMDK to AWS EBS Snapshot
+    dir: "{{.DISTRICT}}"
+    deps:
+      - task: upload
+        vars: {DISTRICT: "{{.DISTRICT}}", VER: "{{.VER}}"}
+    status:
+      - |
+        aws ec2 describe-import-snapshot-tasks | jq -e -r '.ImportSnapshotTasks[]
+                  | select((.SnapshotTaskDetail.UserBucket.S3Key == "{{.DISTRICT}}-{{.VER}}-disk001.vmdk")
+                    and (.SnapshotTaskDetail.Status =="completed"))
+                  | .SnapshotTaskDetail.SnapshotId'
+    cmds:
+      - aws ec2 import-snapshot --disk-container "Description=\"{{upper .DISTRICT}} AMI - {{.VER}}\",Format=\"vmdk\",UserBucket={S3Bucket=\"city-amis\", S3Key=\"{{.DISTRICT}}-{{.VER}}-disk001.vmdk\"}"
+      - task: wait-for-snapshot
+        vars: { DISTRICT: "{{.DISTRICT}}", VER: "{{.VER}}" }
+
+  wait-for-snapshot:
+    prefix: 'Wait Snapshot {{.DISTRICT}} {{.VER}}'
+    dir: "{{.DISTRICT}}"
+    vars:
+      IMPORT_TASK_ID:
+        sh: aws ec2 describe-import-snapshot-tasks | jq '.ImportSnapshotTasks[] | select((.SnapshotTaskDetail.UserBucket.S3Key == "{{.DISTRICT}}-{{.VER}}-disk001.vmdk") and (.SnapshotTaskDetail.Status == "active")) | .ImportTaskId'
+    silent: true
+    cmds:
+      - test -n "{{.IMPORT_TASK_ID}}" || echo "No Import in Progress"
+      - |
+        while [ "$current_status" != "completed" ]; do
+            echo "$current_status : $amount"
+            described=$(aws ec2 describe-import-snapshot-tasks)
+            current_status=$(echo $described | jq -r ".ImportSnapshotTasks[] | select(.ImportTaskId==\"{{.IMPORT_TASK_ID}}\") | .SnapshotTaskDetail.Status")
+            amount=$(echo $described | jq -r ".ImportSnapshotTasks[] | select(.ImportTaskId==\"{{.IMPORT_TASK_ID}}\") | .SnapshotTaskDetail.Progress")
+            sleep 2
+        done
+      - task: get-last-snapshot
+        vars: { DISTRICT: "{{.DISTRICT}}", VER: "{{.VER}}" }
+
+  get-last-snapshot:
+    prefix: "Getting Last Snapshot for {{.DISTRICT}}-{{.VER}}"
+    desc: "Get valid snapshot for DISTRICT and VER"
+    dir: "{{.DISTRICT}}"
+    silent: true
+    vars:
+      LAST_SNAPSHOT:
+        sh: |
+            IFS=$'\n'
+            snaps=$(aws ec2 describe-import-snapshot-tasks | jq -e -r '.ImportSnapshotTasks[] | select((.SnapshotTaskDetail.UserBucket.S3Key == "{{.DISTRICT}}-{{.VER}}-disk001.vmdk") and (.SnapshotTaskDetail.Status =="completed")) | .SnapshotTaskDetail.SnapshotId')
+            bar=$(IFS=" "; echo "${snaps[*]}")
+            aws ec2 describe-snapshots --owner-ids 578925084144 --snapshot-ids $snaps --query "max_by(Snapshots,&StartTime).SnapshotId"
+    cmds:
+      - (test -n "{{.DISTRICT}}" && test -n "{{.VER}}") || (echo "Need DISTRICT and VER"; exit 1)
+      - echo "{{.LAST_SNAPSHOT}}"
+      - task: register-image
+        vars: { SNAPSHOT_ID: "{{.LAST_SNAPSHOT}}", DISTRICT: "{{.DISTRICT}}", VER: "{{.VER}}" }
+
+  register-image:
+    prefix: 'Register {{.DISTRICT}} {{.VER}}'
+    desc: Register EBS IMPORT_TAKS_ID as AMI
+    dir: "{{.DISTRICT}}"
+    status:
+      - aws ec2 describe-images --owners self --filter "Name=block-device-mapping.snapshot-id,Values={{.SNAPSHOT_ID}}" --query "Images[].ImageId" --output text | (read line || return 1)
+    cmds:
+      - test -n "{{.SNAPSHOT_ID}}" || (echo "Set SNAPSHOT_ID to Register an image"; exit 1)
+      - |
+        aws ec2 register-image \
+          --name "{{upper .DISTRICT}} AMI {{.VER}}" \
+          --virtualization-type "hvm" \
+          --root-device-name "/dev/xvda" \
+          --architecture "x86_64" \
+          --block-device-mappings "DeviceName=\"/dev/xvda\",Ebs={DeleteOnTermination=true,SnapshotId=\"{{.SNAPSHOT_ID}}\",VolumeSize=8,VolumeType=\"gp2\"}"
+      - task: tag-image
+        vars: { SNAPSHOT_ID: "{{.SNAPSHOT_ID}}", DISTRICT: "{{.DISTRICT}}", VER: "{{.VER}}"  }
+
+  tag-image:
+    prefix: 'Tag {{.DISTRICT}} {{.VER}}'
+    dir: "{{.DISTRICT}}"
+    desc: Tag AMI based on SNAPSHOT_ID with DISTRICT and VER
+    vars:
+      AMI_ID:
+        sh: aws ec2 describe-images --owners self --filter "Name=block-device-mapping.snapshot-id,Values={{.SNAPSHOT_ID}}" --query "Images[].ImageId" --output text
+    status:
+      - aws ec2 describe-images --owners self --filter "Name=tag:District,Values={{.DISTRICT}}" --query 'Images[? Tags[?Key == `Version` && Value == `{{.VER}}`]].ImageId' | jq -r '.[]' | (read line || return 1)
+    cmds:
+      - test -n "{{.SNAPSHOT_ID}}" || (echo "Set SNAPSHOT_ID to tag an AMI"; exit 1)
+      - aws ec2 create-tags --resources {{.AMI_ID}} --tags Key=District,Value={{.DISTRICT}} Key=Version,Value={{.VER}}
+
+  ami:
+    prefix: 'Creating an AMI for {{.DISTRICT}} {{.VER}}'
+    desc: Create an AMI
+    dir: "{{.DISTRICT}}"
+    status:
+      - aws ec2 describe-images --owners self --filter "Name=tag:District,Values={{.DISTRICT}}" --query 'Images[? Tags[?Key == `Version` && Value == `{{.VER}}`]].ImageId' | jq -r '.[]' | (read line || return 1)
+    cmds:
+      - (test -n "{{.DISTRICT}}" && test -n "{{.VER}}") || (echo "Need DISTRICT and VER"; exit 1)
+      - task: import-snapshot
+        vars: { DISTRICT: "{{.DISTRICT}}", VER: "{{.VER}}" }
+
+  clean:
+    prefix: 'Clean {{.DISTRICT}}'
+    dir: "{{.DISTRICT}}"
+    cmds:
+      - yes | (vagrant halt || true)
+      - rm -rf ~/.vagrant.d/boxes/{{.DISTRICT}}
+      - rm {{.DISTRICT}}*.box
+      - rm {{.DISTRICT}}*.vmdk
+      - rm metadata.json
+      - rm box.ovf
+      - rm Vagrantfile
+
+  clean-remote:
+    prefix: 'Clean Remote {{.DISTRICT}}'
+    dir: "{{.DISTRICT}}"
+    vars:
+      AMI_IDS:
+        sh: aws ec2 describe-images --owners self --filter "Name=tag:District,Values={{.DISTRICT}}" --query 'Images[? Tags[?Key == `Version` && Value == `{{.VER}}`]].ImageId'
+
+
+
+
+
+
+
+
+
+
+

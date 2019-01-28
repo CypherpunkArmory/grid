@@ -5,21 +5,38 @@
 The default cookbook for the AMI produces an Virtualbox file that cannot be booted.
 
 The only distinction is that that Amazon devices boot from `/dev/xvda` while
-vbox files boot from `/dev/sda1` - you'll find a replacement command near the
-end of the `city.yml` Ansible playbook that changes the boot stanza.  Removing
-it will allow the device to boot in Virtualbox.
+vbox files boot from `/dev/sda1`
 
-Note that it's not possible to create a device that's bootable in both
-Virtualbox AND AWS at this time.
+In order to boot the box for local instructions, use `vagrant init` in the
+images directory, then hold L-SHIFT in Virtualbox - as soon as you see the `boot:`
+prompt type any characters to halt the boot process - you can then type
 
-```
-> packer build <x>_host.json
-> vagrant init <x>_v<version>.box
-> vagrant up
-> vagrant ssh
-```
+`local single`
 
-## Advanced Instructions
+and boot into single user mode locally.  You can then set up the device for
+local access if you need something more.
+
+## Creating an AMI from a locally built virtual-box.
+
+You need `go-task` installed to build an AMI.
+You will also need to install ansible locally.
+
+See here: [go-task](https://github.com/go-task/task)
+
+The primary task is `task ami`
+
+You need to provide _at least_ a DISTRICT and A VER to build an AMI.
+
+`task ami DISTRICT=city VER=0.0.9` will build CITY-0.0.9 AMI.  It will not tear down
+infrastructure or boot those servers.  That's done through terraform.
+
+Try `task --list` for more information.
+
+## Advanced Instructions for booting ubunut-base.ova
+
+If you have trouble booting the created images at all, these instruction
+will let you use the serial console and advanced packaer commands to get really deep
+into the weeds.
 
 This directory includes the private key necessary to login to the server.
 
@@ -64,50 +81,6 @@ Setting `headless` to `false` will also provid valuable output.
 The `Vagrantfile.template` here is applied at the _machine_ level on your
 workstation - so any overrides you place in the local `Vagrantfile` will take
 precendence.
-
-## Creating an AMI from the Box
-
-Once packer has created a `box` file you can turn this into an AMI with the
-following steps.
-
-1. Extract a VMDK from the Box file
-
-```
-tar xzvf city_v0.0.1.box
-```
-
-2. Upload the VMDK to AWS S3
-```
-aws s3 cp city-0.0.1-disk001.vmdk s3://city-amis
-```
-
-3. Import the snapshot to an EBS device
-```
-aws ec2 import-snapshot --description "City AMI $(date)" --disk-container file://containers.json
-```
-
-This will report a `snapshot-import-id` - you'll need that in the next step so
-copy it from the out put
-
-4. Wait for the import to be done.
-
-```
-watch "aws ec2 describe-import-snapshot-tasks | jq '.ImportSnapshotTasks[] | select(.ImportTaskId==\"import-snap-06e7c15732804c201\")'"
-```
-
-Replace "import-snap-1245deadbeef" with your import-snap job id.
-
-5. Register that EBS volumas an ami
-
-Replace the "snapshot-id" key in device-mapping.json with the snapshot id
-reported in step 4.
-
-```
-aws ec2 register-image --name "City AMI 0.0.1" --virtualization-type "hvm" --root-device-name "/dev/xvda" --architecture "x86_64" --block-device-mappings file://device-mapping.json
-```
-
-6. Switch to grid / terraform plan / apply.
-
 
 
 

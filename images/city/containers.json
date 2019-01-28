@@ -1,8 +1,0 @@
-{
-  "Description": "City AMI - 0.0.3",
-  "Format": "vmdk",
-   "UserBucket": {
-     "S3Bucket": "city-amis",
-     "S3Key": "city-0.0.3-disk001.vmdk"
-   }
-}
