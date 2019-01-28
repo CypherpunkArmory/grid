@@ -57,6 +57,47 @@
        - name: Enable Fabio at Boot
          command: systemctl enable /usr/lib/systemd/user/fabio.service
 
+   - name: Configure and allow Passwordless Login for punch user
+     block:
+       - name: Add punch user
+         user:
+           name: punch
+           shell: /usr/sbin/nologin
+           append: yes
+           state: present
+           createhome: no
+
+       - name: Set the password to empty
+         command: passwd -d punch
+
+       - name: Add no-login stanza to sshd config
+         copy:
+           src: templates/sshd_config
+           dest: /etc/ssh/sshd_config
+
+       - name: Allow users in /etc/ssh/autologin to login automatically
+         copy:
+           src: templates/pam_ssh
+           dest: /etc/pam.d/sshd
+
+       - name: Populate /etc/ssh/autologin with punch
+         lineinfile:
+           path: /etc/ssh/autologin
+           line: 'punch'
+           create: yes
+
+       - name: Populate /etc/hushlogins with punch
+         lineinfile:
+           path: /etc/hushlogins
+           line: 'punch'
+           create: yes
+
+       - name: Ensure login.defs is set to use /etc/hushlogins
+         lineinfile:
+           path: /etc/login.defs
+           regexp: ^HUSHLOGIN_FILE
+           line: HUSHLOGIN_FILE /etc/hushlogins
+
    - include_tasks: ./tasks/datadog.yml
 
 - import_playbook: ../tasks/remove_ubuntu.yml
