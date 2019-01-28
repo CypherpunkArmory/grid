@@ -34,9 +34,9 @@ resource "github_repository" "holepunch" {
   allow_merge_commit = "false"
 }
 
-resource "github_repository" "holepunch_cli" {
-  name        = "holepunch_cli"
-  description = "Holepunch CLI"
+resource "github_repository" "punch" {
+  name        = "punch"
+  description = "Holepunch CLI Tool"
 
   private = "true"
 

@@ -5,3 +5,6 @@ packer-cache
 .vdi
 .vagrant
 .DS_Store
+tags
+*.box
+*.vmdk

@@ -29,7 +29,7 @@ data "template_file" "city_cloud_init" {
   count = "${var.city_hosts}"
   template = "${file("${path.module}/cloud-init/city_host.yml")}"
   vars {
-    hostname = "${format("city%01d", count.index + 1)}"
+    hostname = "${format("city%01d", count.index + 1)}-${replace(data.aws_ami.city_ami.tags["Version"], ".", "")}"
     datadog_api_key = "${var.datadog_api_key}"
     city_hosts = "${var.city_hosts}"
     # FIXME When HCL2 / TF 0.12 come out we should interpolate the
@@ -54,8 +54,18 @@ resource "aws_instance" "city_host" {
   tags {
     District = "city"
     Usage = "app"
-    Name = "${format("city%01d", count.index + 1)}"
+    Name = "${format("city%01d", count.index + 1)}-${replace(data.aws_ami.city_ami.tags["Version"], ".", "")}"
     Role = "host"
+  }
+
+  provisioner "remote-exec" {
+    when = "destroy"
+    inline = [
+      "nomad node eligibility -disable -self",
+      "nomad node drain -self",
+      "sleep 15", # this should wait until the new servers are stable and a leader election can be performed when we leave
+      "consul leave"
+    ]
   }
 }
 

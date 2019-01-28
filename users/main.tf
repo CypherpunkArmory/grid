@@ -4,7 +4,7 @@ module "prater" {
   username = "prater"
   keybase_name = "stephenprater"
   github_name = "stephenprater"
-  github_role = "member"
+  github_role = "admin"
   name = "Stephen Prater"
   userland_team_id = "${var.userland_team_id}"
 }
@@ -28,7 +28,7 @@ module "andrew" {
   username = "andrew"
   keybase_name = "andrewscibek"
   github_name = "AndrewScibek"
-  github_role = "member"
+  github_role = "admin"
   name = "Andrew Scibek"
   userland_team_id = "${var.userland_team_id}"
 }
@@ -52,7 +52,7 @@ module "thomas" {
   username = "thomas"
   keybase_name = "lithogen"
   github_name = "luongthomas"
-  github_role = "member"
+  github_role = "admin"
   name = "Thomas Luong"
   userland_team_id = "${var.userland_team_id}"
 }
