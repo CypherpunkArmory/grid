@@ -39,3 +39,11 @@ module "dumont" {
   source = "./dumont"
 }
 
+terraform {
+  backend "s3" {
+    bucket = "userland.tech.terraform"
+    key = "terraform.tfstate"
+    region = "us-west-2"
+  }
+}
+

@@ -113,6 +113,17 @@ resource "aws_vpc" "city_vpc" {
   }
 }
 
+resource "aws_eip" "city_lb_ip" {
+  instance = "${aws_instance.city_lb.id}"
+  vpc = true
+
+  tags {
+    District = "city"
+    Usage = "app"
+    Role = "lb"
+  }
+}
+
 resource "aws_subnet" "city_vpc_subnet" {
   vpc_id = "${aws_vpc.city_vpc.id}"
   cidr_block = "172.31.1.0/24"
