@@ -33,7 +33,102 @@ resource "aws_iam_group_policy_attachment" "change_password_policy" {
   policy_arn = "${data.aws_iam_policy.change_password.arn}"
 }
 
+resource "aws_iam_group" "robots" {
+  name = "Robots"
+}
+
+# AWS Users
+
+resource "aws_iam_user" "provisioner" {
+  name = "provisioner"
+  tags {
+    Substrate = "silicon"
+  }
+}
+
+resource "aws_iam_user_group_membership" "provisioner_user_groups" {
+  user = "${aws_iam_user.provisioner.name}"
+  groups = [
+    "${aws_iam_group.robots.name}"
+  ]
+}
+
+resource "aws_iam_access_key" "provisioner_key" {
+  user = "${aws_iam_user.provisioner.name}"
+}
+
+
+resource "aws_iam_user" "emailer" {
+  name = "emailer"
+  tags {
+    Substrate = "silicon"
+  }
+}
+
+resource "aws_iam_user_group_membership" "emailer_user_groups" {
+  user = "${aws_iam_user.emailer.name}"
+  groups = [
+    "${aws_iam_group.robots.name}"
+  ]
+}
+
+
+resource "aws_iam_access_key" "emailer_key" {
+  user = "${aws_iam_user.emailer.name}"
+}
+
+
+
 # AWS Policies
+
+resource "aws_iam_policy" "emailer" {
+  description = "Permission Policy for sending email via SES"
+  name = "emailer"
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "ses:SendRawEmail",
+      "Resource": "*"
+    }
+  ]
+}
+POLICY
+}
+
+
+resource "aws_iam_policy" "provisioner" {
+  description = "Role policy for provisioning machine"
+  name        = "provisioner"
+  policy      = <<POLICY
+{
+   "Version":"2012-10-17",
+   "Statement":[
+      {
+         "Effect":"Allow",
+         "Action":[
+            "dynamodb:*"
+         ],
+         "Resource":[
+            "${aws_dynamodb_table.vault-secrets.arn}"
+         ]
+      },
+      {
+         "Effect":"Allow",
+         "Action":[
+            "kms:Encrypt",
+            "kms:Decrypt",
+            "kms:DescribeKey"
+         ],
+         "Resource":"*"
+      }
+   ]
+}
+POLICY
+}
+
 
 resource "aws_iam_policy" "vmimport" {
   description = "Role policy for VMIE Amazon Service."
@@ -79,7 +174,10 @@ resource "aws_iam_policy" "city_host" {
       {
          "Effect":"Allow",
          "Action":[
-            "ec2:DescribeInstances"
+            "ec2:DescribeInstances",
+            "kms:Encrypt",
+            "kms:Decrypt",
+            "kms:DescribeKey "
          ],
          "Resource": "*"
       }
@@ -259,4 +357,12 @@ resource "aws_iam_role_policy_attachment" "city_host_policy_attach" {
   policy_arn = "${aws_iam_policy.city_host.arn}"
 }
 
+resource "aws_iam_user_policy_attachment" "provisioner_provisioner_policy_attach" {
+  user = "${aws_iam_user.provisioner.name}"
+  policy_arn = "${aws_iam_policy.provisioner.arn}"
+}
 
+resource "aws_iam_user_policy_attachment" "emailer_emailer_policy_attach" {
+  user = "${aws_iam_user.emailer.name}"
+  policy_arn = "${aws_iam_policy.emailer.arn}"
+}
