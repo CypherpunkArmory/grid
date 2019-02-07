@@ -7,5 +7,5 @@ output "dev_group_name" {
 }
 
 output "aws_emailer_smtp_password" {
-  value = "${aws_iam_user.emailer.ses_smtp_password}"
+  value = "${aws_iam_access_key.emailer_key.ses_smtp_password}"
 }
