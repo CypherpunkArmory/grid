@@ -1,0 +1,24 @@
+---
+# The instance itself is authenticated through the ec2-metadata service - they
+# are assigned a role based on the instance profile and obtain their initial token
+# that way.
+#
+# this token is used to obtain a nomad-server token for nomad servers.
+#
+# otherwise host ec2 instances have no access to vault
+- name: Enable AWS Auth Access
+  when: "'aws/' not in auth_methods"
+  environment:
+    VAULT_TOKEN: "{{ vault_token }}"
+  block:
+    - name: Enable AWS Auth
+      command: vault auth enable aws
+
+    - name: Write City Host Policy to vault
+      command: "vault policy write dev-policy {{role_path}}/templates/city-host-policy.hcl"
+
+    - name: Write policy attachment for the city_host IAM profile
+      shell: |
+         vault write auth/aws/role/city-host auth_type=iam policies=city-host-policy max_ttl=500h
+         vault write auth/aws/role/city-host auth_type=iam bound_iam_principal_arn=arn:aws:iam::{{aws_account_id}}:role/city_host policies=city-host-policy max_ttle=500h
+

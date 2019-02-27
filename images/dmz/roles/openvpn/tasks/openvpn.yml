@@ -1,0 +1,25 @@
+---
+- name: Configure and Install OpenVPN
+  block:
+   - name: Install OpenVPN
+     apt:
+       name: openvpn
+
+   - name: Copy OpenVPN Server Unit
+     copy:
+       src: templates/openvpn-server.service
+       dest: /usr/lib/systemd/user/openvpn-server.service
+
+   - name: Remove the bundled service
+     file:
+       path: /lib/systemd/system/openvpn-server@.service
+       state: absent
+
+   - name: Enable OpenVPN at boot
+     command: systemctl enable /usr/lib/systemd/user/openvpn-server.service
+
+   - name: Turn on IPV4 Forwarding
+     lineinfile:
+       dest: /etc/sysctl.conf
+       regexp: '#net.ipv4.ip_forward'
+       line: 'net.ipv4.ip_forward=1'

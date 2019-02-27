@@ -1,5 +1,5 @@
 resource "aws_dynamodb_table" "vault-secrets" {
-  name           = "vault-secrets"
+  name           = "vault-secrets-${var.environment}"
 
   read_capacity  = 1
   write_capacity = 1
@@ -19,7 +19,7 @@ resource "aws_dynamodb_table" "vault-secrets" {
 
   tags {
     Name        = "vault-dynamodb-table"
-    Environment = "prod"
+    Environment = "${var.environment}"
     District    = "city"
   }
 }

@@ -1,0 +1,11 @@
+[Unit]
+Description=Import SSH Keys
+After=network.target consul.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/set-ssh-keys.sh
+StandardOutput=journal
+
+[Install]
+WantedBy=multi-user.target

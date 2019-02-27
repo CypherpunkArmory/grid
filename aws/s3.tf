@@ -8,5 +8,6 @@ resource "aws_s3_bucket" "city_amis" {
     Environment = "production"
     District = "city"
     Usage = "infra"
+    Environment = "${var.environment}"
   }
 }

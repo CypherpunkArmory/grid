@@ -1,0 +1,22 @@
+[Unit]
+Description=Vault
+Documentation=https://www.vaultproject.io/docs/
+StartLimitIntervalSec=10
+Wants=network-online.target
+After=set-ip.service
+
+[Service]
+KillMode=process
+KillSignal=SIGINT
+ExecStart=/usr/bin/vault server -config=/etc/vault.hcl
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=2
+StartLimitBurst=3
+LimitNOFILE=65536
+LimitMEMLOCK=infinity
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+User=vault
+
+[Install]
+WantedBy=multi-user.target

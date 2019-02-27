@@ -1,0 +1,17 @@
+---
+- name: Enable Github PAT Access
+  environment:
+    VAULT_TOKEN: "{{ vault_token }}"
+  when: "'github/' not in auth_methods"
+  block:
+    - name: Enable Github Auth
+      command: vault auth enable github
+
+    - name: Only for this org
+      command: "vault write auth/github/config organization={{github_org}}"
+
+    - name: Write Dev Policy to vault
+      command: "vault policy write dev-policy {{role_path}}/templates/dev-policy.hcl"
+
+    - name: Map team name to dev policy
+      command: "vault write auth/github/map/teams/{{dev_team}} value=dev-policy"

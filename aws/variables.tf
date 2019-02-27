@@ -6,3 +6,7 @@ variable "github_users" {
 variable "datadog_api_key" {
   description = "The Datadog API Key"
 }
+
+variable "environment" {
+  description = "The Terraform Environment Name"
+}

@@ -6,6 +6,18 @@ resource "aws_security_group" "city_servers" {
   tags {
     District = "city"
     Usage = "app"
+    Environment = "${var.environment}"
+  }
+}
+
+resource "aws_security_group" "dmz_server" {
+  name        = "dmz"
+  vpc_id      = "${aws_vpc.city_vpc.id}"
+  description = "Allow UDP OpenVPN traffic to DMZ"
+
+  tags {
+    District = "dmz"
+    Environment = "${var.environment}"
   }
 }
 
@@ -51,6 +63,15 @@ resource "aws_security_group_rule" "subnet_allow_all" {
   from_port         = 0
   to_port           = 0
   protocol          = "-1"
-  cidr_blocks       = ["172.31.1.0/24"]
+  cidr_blocks       = ["172.31.0.0/16"]
   security_group_id = "${aws_security_group.city_servers.id}"
+}
+
+resource "aws_security_group_rule" "allow_vpn" {
+  type              = "ingress"
+  from_port         = 1194
+  to_port           = 1194
+  protocol          = "udp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = "${aws_security_group.dmz_server.id}"
 }

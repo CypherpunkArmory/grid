@@ -175,11 +175,23 @@ resource "aws_iam_policy" "city_host" {
          "Effect":"Allow",
          "Action":[
             "ec2:DescribeInstances",
+            "iam:GetInstanceProfile",
+            "iam:GetUser",
+            "iam:GetRole",
             "kms:Encrypt",
             "kms:Decrypt",
-            "kms:DescribeKey "
+            "kms:DescribeKey"
          ],
          "Resource": "*"
+      },
+      {
+         "Effect":"Allow",
+         "Action":[
+            "dynamodb:*"
+         ],
+         "Resource":[
+            "${aws_dynamodb_table.vault-secrets.arn}"
+         ]
       }
    ]
 }
@@ -257,7 +269,12 @@ resource "aws_iam_policy" "datadog" {
         "support:*",
         "tag:GetResources",
         "tag:GetTagKeys",
-        "tag:GetTagValues"
+        "tag:GetTagValues",
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:DescribeLogGroups",
+        "logs:DescribeLogStreams",
+        "logs:PutLogEvents"
       ],
       "Effect": "Allow",
       "Resource": "*"

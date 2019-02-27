@@ -3,7 +3,7 @@ resource "aws_db_instance" "city_rds" {
   identifier = "city-db"
   storage_type = "gp2"
   engine = "postgres"
-  engine_version = "10.5"
+  engine_version = "10.6"
   instance_class = "db.m4.large"
   availability_zone = "us-west-2c"
   username = "postgres"
@@ -18,6 +18,7 @@ resource "aws_db_instance" "city_rds" {
     Usage = "app"
     Name = "city_db"
     Role = "db"
+    Environment = "${var.environment}"
   }
 }
 
@@ -29,6 +30,7 @@ resource "aws_db_subnet_group" "city_db" {
   tags {
     District = "city"
     Usage = "db"
+    Environment = "${var.environment}"
   }
 }
 
@@ -40,6 +42,8 @@ resource "aws_subnet" "city_backup_subnet" {
 
   tags {
     District = "city"
-    Usage = "app"
+    Usage = "infra"
+    Role = "db"
+    Environment = "${var.environment}"
   }
 }

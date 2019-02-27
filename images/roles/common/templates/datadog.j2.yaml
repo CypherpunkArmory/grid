@@ -1,0 +1,35 @@
+
+# The host of the Datadog intake server to send Agent data to
+dd_url: https://app.datadoghq.com
+
+# The Datadog api key to associate your Agent's data with your organization.
+# Can be found here:
+# https://app.datadoghq.com/account/settings
+api_key: {{ dd_api_key }}
+
+#Set the host's tags (optional)
+tags:
+  - district:{{ district }}
+  - env:{{ env }}
+{% for tag in role_names %}
+  {% if tag != 'common' %}
+  - {{ tag }}
+  {% endif %}
+{% endfor %}
+{% for tag in datadog_tags %}
+  - {{ tag }}
+{% endfor %}
+
+# Collect AWS EC2 custom tags as agent tags
+collect_ec2_tags: true
+
+# Logs agent
+#
+# Logs agent is disabled by default
+logs_enabled: true
+
+#
+# Enable logs collection for all containers, disabled by default
+
+process_config:
+  enabled: true

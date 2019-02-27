@@ -1,0 +1,21 @@
+---
+- name: Provisioning
+  hosts: all
+  become: yes
+  become_user: root
+  become_method: sudo
+
+  vars:
+    env: prod
+    district: dmz
+    consul_district: city
+    logo: scape
+    datadog_tags:
+      - vault
+
+  roles:
+    - amazon
+    - common
+    - consul_client
+    - vault
+    - openvpn

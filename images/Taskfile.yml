@@ -18,7 +18,7 @@ tasks:
     status:
       - test -f "{{.DISTRICT}}_v{{.VER}}.box"
     cmds:
-      - packer build -var 'version={{.VER}}' -var 'template={{.DISTRICT}}' {{.DISTRICT}}_host.json
+      - packer build -on-error=ask -var 'version={{.VER}}' -var 'template={{.DISTRICT}}' {{.DISTRICT}}_host.json
 
   extract:
     prefix: 'Extract {{.DISTRICT}} {{.VER}}'
@@ -153,12 +153,12 @@ tasks:
     dir: "{{.DISTRICT}}"
     cmds:
       - yes | (vagrant halt || true)
-      - rm -rf ~/.vagrant.d/boxes/{{.DISTRICT}}
-      - rm {{.DISTRICT}}*.box
-      - rm {{.DISTRICT}}*.vmdk
-      - rm metadata.json
-      - rm box.ovf
-      - rm Vagrantfile
+      - rm -rf ~/.vagrant.d/boxes/{{.DISTRICT}}*
+      - rm {{.DISTRICT}}*.box || true
+      - rm {{.DISTRICT}}*.vmdk || true
+      - rm metadata.json || true
+      - rm box.ovf || true
+      - rm Vagrantfile || true
 
   clean-remote:
     prefix: 'Clean Remote {{.DISTRICT}}'
@@ -166,6 +166,27 @@ tasks:
     vars:
       AMI_IDS:
         sh: aws ec2 describe-images --owners self --filter "Name=tag:District,Values={{.DISTRICT}}" --query 'Images[? Tags[?Key == `Version` && Value == `{{.VER}}`]].ImageId'
+
+  list-amis:
+    prefix: 'Listing AMIS for {{.DISTRICT}}'
+    desc: List available AMI version for DISTRICT
+    silent: true
+    vars:
+      AMI_IDS:
+        sh: aws ec2 describe-images --owners self --filter "Name=tag:District,Values={{.DISTRICT}}" --query 'Images[].Name'
+    cmds:
+      - echo '{{.AMI_IDS}}'
+
+  run:
+    prefix: 'Running Local {{.DISTRICT}}'
+    desc: Run image locally in Vagrant (press SHIFT and type 'local' when v-box appears.)
+    dir: "{{.DISTRICT}}"
+    cmds:
+      - rm Vagrantfile || true
+      - rm -rf ~/.vagrant.d/boxes/{{.DISTRICT}}_v{{.VER}}.box
+      - yes | vagrant init {{.DISTRICT}}_v{{.VER}}.box
+      - echo "Press SHIFT and type 'local' when Virtualbox Window Appears"
+      - yes | vagrant up
 
 
 

@@ -9,23 +9,16 @@
     # replace me with an EC2 autoscale lookup
     cluster_size: 3
     # replace me with an env lookup
-    dd_api_key: 4e1033fd1fe7359d63ff27660ba114af
-    # eeeeeeehhhhh
     env: prod
     district: city
+    consul_district: city
     logo: city
+    datadog_tags:
+      - host
 
-  tasks:
-   - import_tasks: ../tasks/common.yml
-   - import_tasks: ../tasks/boot_script.yml
-   - include_tasks: ../tasks/motd.yml
-   - import_tasks: ../tasks/docker.yml
-   - import_tasks: ../tasks/create_login_user.yml
-   - import_tasks: ../tasks/amazon.yml
-   - include_tasks: ../tasks/consul.yml
-   - include_tasks: ../tasks/nomad.yml
-   - include_tasks: ./tasks/datadog.yml
-
-- import_playbook: ../tasks/remove_ubuntu.yml
-
-
+  roles:
+    - amazon
+    - common
+    - consul_server
+    - docker
+    - nomad_server

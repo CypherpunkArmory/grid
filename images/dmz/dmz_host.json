@@ -1,0 +1,59 @@
+{
+  "variables": {
+    "version": "0.0.3"
+  },
+  "builders": [{
+      "type": "virtualbox-ovf",
+      "source_path": "../ubuntu-base.ova",
+      "format": "ova",
+      "ssh_username": "ubuntu",
+      "ssh_private_key_file": "../provision",
+      "ssh_skip_nat_mapping": true,
+      "ssh_port": 2223,
+      "http_directory": "http",
+      "vm_name": "dmz-{{user `version`}}",
+      "boot_wait": "1s",
+      "boot_command": [
+        "<esc><esc><esc><esc><esc><esc><esc><esc><esc><esc><esc><esc>",
+        "/vmlinuz ",
+        "console=ttyS0 ",
+        "rw root=/dev/sda1 ",
+        "initrd=/initrd.img ",
+        "ds=nocloud-net;s=http://{{ .HTTPIP }}:{{ .HTTPPort }}/",
+        "<enter>"
+      ],
+      "guest_additions_mode": "disable",
+      "export_opts": [
+        "--vsys", "0",
+        "--description", "DMZ Host",
+        "--version", "{{user `version`}}"
+      ],
+      "headless": true
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell-local",
+      "command": "ANSIBLE_CONFIG=../ansible.cfg ansible-playbook --private-key ../provision --user ubuntu -i ../inventory -e @../ansible-vault.yml --vault-password-file /keybase/team/userland/vault_password.txt dmz.yml"
+    },
+    {
+      "type": "shell-local",
+      "command": "ANSIBLE_CONFIG=../ansible.cfg ansible-playbook --private-key ../provision --user alan -i ../inventory ../tasks/remove_ubuntu.yml"
+    },
+    {
+      "type": "shell-local",
+      "command": "ANSIBLE_CONFIG=../ansible.cfg ansible-playbook -e @../ansible-vault.yml --vault-password-file /keybase/team/userland/vault_password.txt bootstrap.yml"
+    },
+    {
+      "type": "shell-local",
+      "command": "sleep 5"
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "vagrant",
+      "vagrantfile_template": "../roles/common/templates/Vagrantfile.template",
+      "output": "dmz_v{{user `version`}}.box"
+    }
+  ]
+}

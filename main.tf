@@ -1,6 +1,7 @@
 variable "github_token" {}
 variable "datadog_app_key" {}
 variable "datadog_api_key" {}
+variable "environment" {}
 
 provider "aws" {
   version        = "~> 1.57"
@@ -22,6 +23,7 @@ module "aws" {
   source = "./aws"
   github_users = "${module.users.github_users}"
   datadog_api_key = "${var.datadog_api_key}"
+  environment = "${var.environment}"
 }
 
 module "github" {

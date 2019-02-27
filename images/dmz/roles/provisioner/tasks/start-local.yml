@@ -1,0 +1,24 @@
+- name: Copy a local config
+  template:
+    src: ../roles/vault/templates/vault.j2.hcl
+    dest: /tmp/vault.hcl
+
+- name: Make sure we have the right version
+  command: vault --version
+  register: vault
+
+- name: Quit if version mismatch
+  meta: end_play
+  when: vault.stdout is match('1.0.2')
+
+- name: Kill running vaults
+  command: killall vault
+  ignore_errors: true
+
+- name: Start a Local Vault Server Pointed at the Remote Data Store
+  shell: "(cd /; vault server -config /tmp/vault.hcl >/dev/null 2>&1 &)"
+
+- name: Wait for Vault
+  wait_for:
+    port: 8200
+

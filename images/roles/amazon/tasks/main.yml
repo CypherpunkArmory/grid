@@ -1,0 +1,46 @@
+# AWS has some fucked up boot requirements
+---
+- name: Copy a Boot Config Template File
+  copy:
+    src: templates/extlinux.conf
+    dest: /boot/extlinux/extlinux.conf
+
+# I give up getting cloud-init to work runcmd is fucking useless.
+- name: Configure and Install Boot Scripts
+  block:
+   - name: Install Set-IP script
+     template:
+       src: templates/set-ip.sh.template
+       dest: /usr/bin/set-ip.sh
+       owner: root
+       group: root
+       mode: 0755
+
+   - name: Install Set-IP one-shot service
+     copy:
+       src: templates/set-ip.service
+       dest: /usr/lib/systemd/user/set-ip.service
+
+   - name: Enable Set-IP service at boot
+     command: systemctl enable /usr/lib/systemd/user/set-ip.service
+
+   - name: Install SSH Import Script
+     template:
+       src: templates/set-ssh-keys.sh.template
+       dest: /usr/bin/set-ssh-keys.sh
+       owner: root
+       group: root
+       mode: 0755
+
+   - name: Install SSH ID import one-shot service
+     copy:
+       src: templates/ssh-import-id.service
+       dest: /usr/lib/systemd/user/ssh-import-id.service
+
+   - name: Import SSH IDs when DNS is online
+     command: systemctl enable /usr/lib/systemd/user/ssh-import-id.service
+
+- name: Copy a Boot Config Template File
+  copy:
+    src: templates/extlinux.conf
+    dest: /boot/extlinux/extlinux.conf

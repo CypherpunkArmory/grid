@@ -1,0 +1,7 @@
+logs_config:
+  container_collect_all: true
+
+apm_config:
+  enabled: true
+  apm_non_local_traffic: true
+

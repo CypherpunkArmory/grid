@@ -38,7 +38,7 @@ resource "github_repository" "punch" {
   name        = "punch"
   description = "Holepunch CLI Tool"
 
-  private = "true"
+  private = "false"
 
   has_downloads = "true"
   has_issues    = "true"

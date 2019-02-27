@@ -1,0 +1,65 @@
+---
+- name: Configure and Install Datadog
+  vars:
+    dd_api_key: "{{ vaulted_dd_api_key }}"
+
+  block:
+    - name: Install apt-transport-https
+      apt:
+        pkg: apt-transport-https
+
+    - name: Add Datadog deb repo
+      lineinfile:
+        dest: /etc/apt/sources.list
+        line: deb https://apt.datadoghq.com/ stable 6
+
+    - name: Install DD keys
+      command: apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 382E94DE
+
+    - name: Install DD agent
+      apt:
+        update_cache: yes
+        pkg: datadog-agent
+        state: present
+
+    - name: Copy Config File
+      template:
+        src: templates/datadog.j2.yaml
+        dest: /etc/datadog-agent/datadog.yaml
+        owner: dd-agent
+        mode: 0600
+
+    - name: Clear the extra conf.d directories
+      file:
+        path: /etc/datadog-agent/conf.d/
+        state: absent
+
+    - name: Clear the extra conf.d directories
+      file:
+        path: /etc/datadog-agent/conf.d/
+        state: directory
+
+    - name: Create JournalD conf dir
+      file:
+        path: /etc/datadog-agent/conf.d/journald.d
+        state: directory
+        owner: dd-agent
+        group: dd-agent
+        mode: 0755
+
+    - name: Enable JournalD log explorer
+      template:
+        src: templates/journald.j2.yaml
+        dest: /etc/datadog-agent/conf.d/journald.d/conf.yaml
+        owner: dd-agent
+        group: dd-agent
+        mode: 0644
+
+    - name: Attach dd-agent to systemd-journald
+      user:
+        name: dd-agent
+        append: yes
+        groups: systemd-journal
+
+    - name: Enable DD Service at Boot
+      command: systemctl enable datadog-agent

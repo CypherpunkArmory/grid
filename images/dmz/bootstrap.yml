@@ -1,0 +1,26 @@
+- name: Bootstrap the Vault Datastore
+  hosts: 127.0.0.1
+  connection: local
+
+  vars:
+    env: prod
+    key_id: "{{ vaulted_kms_key_id }}"
+    output_directory: /keybase/team/userland
+    github_org: CypherpunkArmory
+    dev_team: userland
+    aws_account_id: 578925084144
+    vpn_domain: hole_ly
+    vpc_active_subnet: 172.31.0.0
+    vpc_vpn_subnet: 172.16.0.0
+    vault_openvpn_url: https://github.com/Luzifer/vault-openvpn/releases/download/v1.9.0/vault-openvpn_darwin_amd64.zip
+
+  environment:
+    VAULT_ADDR: http://127.0.0.1:8200
+
+  roles:
+    - provisioner
+    - vault-openvpn
+
+  tasks:
+    - name: Kill Local Vault
+      command: killall vault

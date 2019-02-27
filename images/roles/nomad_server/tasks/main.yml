@@ -1,0 +1,75 @@
+# Currently we run Server and Client nodes on the same boxes in City but
+# this is probably not a long term solution - ultimately we'll need to separate them
+# out and have server boxes running on separate City nodes from workload executors
+#
+# When that day comes - move these "server" units out into their own ansible playbook
+#
+# The nomad servers in the City will _probably_ not be doing anything else
+
+---
+- name: Configure and Install NOMAD
+  vars:
+
+  block:
+  - name: Download NOMAD Binaries
+    get_url:
+      url: https://releases.hashicorp.com/nomad/0.8.6/nomad_0.8.6_linux_amd64.zip
+      dest: /tmp/nomad_0.8.6_linux_amd64.zip
+
+  - name: Extract Binaries
+    unarchive:
+      src: /tmp/nomad_0.8.6_linux_amd64.zip
+      dest: /usr/bin
+      remote_src: yes
+
+  - name: Remove Archive
+    file:
+      path: /tmp/nomad_0.8.6_linux_amd64.zip
+      state: absent
+
+  - name: Create Nomad User
+    user:
+      name: nomad
+      shell: /usr/sbin/nologin
+      system: yes
+      createhome: no
+      groups: docker
+
+  - name: Create Nomad Directory
+    file:
+      path: /var/lib/nomad
+      state: directory
+      owner: nomad
+      group: nomad
+      mode: 0755
+
+  - name: Upload SystemD Unit
+    copy:
+      src: templates/nomad.service
+      dest: /usr/lib/systemd/user/nomad.service
+
+  - name: Update HCL
+    template:
+      src: templates/nomad.j2.hcl
+      dest: /etc/nomad.hcl
+      owner: nomad
+      group: nomad
+      mode: 0644
+
+  - name: Enable Nomad Unit at Boot
+    command: systemctl enable /usr/lib/systemd/user/nomad.service
+
+  - name: Prelogin Nomad to the Hub Registry
+    file:
+      path: /home/nomad/.docker
+      state: directory
+      owner: nomad
+      group: nomad
+      mode: 0700
+
+  - name: Pre-login the clubot
+    template:
+      src: templates/docker-config.json
+      dest: /home/nomad/.docker/config.json
+
+

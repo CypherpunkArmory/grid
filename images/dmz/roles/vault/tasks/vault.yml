@@ -1,0 +1,49 @@
+---
+- name: Configure and Install Vault
+  vars:
+    key_id: "{{ vaulted_kms_key_id }}"
+
+  block:
+    - name: Download Vault Binaries
+      get_url:
+        url: https://releases.hashicorp.com/vault/1.0.2/vault_1.0.2_linux_amd64.zip
+        dest: /tmp/vault_1.0.2_linux_amd64.zip
+
+    - name: Extract Binaries
+      unarchive:
+        src: /tmp/vault_1.0.2_linux_amd64.zip
+        dest: /usr/bin
+        remote_src: yes
+
+    - name: Remove the download
+      file:
+        path: /tmp/vault_1.0.2_linux_amd64.zip
+        state: absent
+
+    - name: Create Vault User
+      user:
+        name: vault
+        shell: /usr/sbin/nologin
+        system: yes
+        createhome: no
+
+    - name: Upload SystemD Unit
+      copy:
+        src: templates/vault.service
+        dest: /usr/lib/systemd/user/vault.service
+
+    - name: Update HCL
+      template:
+        src: templates/vault.j2.hcl
+        dest: /etc/vault.hcl
+        owner: vault
+        group: vault
+        mode: 0644
+
+    - name: Enable Vault Unit at Boot
+      command: systemctl enable /usr/lib/systemd/user/vault.service
+
+    - name: Configure the Consul Service for Vault
+      copy:
+        src: templates/vault-consul.hcl
+        dest: /etc/consul.d/vault.hcl

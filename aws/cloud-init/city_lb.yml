@@ -4,13 +4,17 @@ system_info:
   default_user:
     name: alan
 
-ssh_import_id:
-  - gh:stephenprater
-  - gh:AndrewScibek
-  - gh:corbinlc
-  - gh:MatthewTighe
-
 hostname: ${hostname}
+
+write_files:
+  - path: /etc/ssh/import_keys
+    content: |
+      gh:stephenprater
+      gh:AndrewScibek
+      gh:corbinlc
+      gh:MatthewTighe
+      gh:luongthomas
+
 
 bootcmd:
   - 'sed -i "s/datacenter.*/datacenter = \"${lb_district}\"/" /etc/consul.hcl'

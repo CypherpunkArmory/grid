@@ -20,6 +20,17 @@ data "aws_ami" "lb_ami" {
   owners = ["578925084144"]
 }
 
+data "aws_ami" "dmz_ami" {
+  most_recent = true
+
+  filter {
+    name = "name"
+    values = ["DMZ AMI *"]
+  }
+
+  owners = ["578925084144"]
+}
+
 
 variable "city_hosts" {
   default = 3
@@ -78,12 +89,12 @@ data "template_file" "city_lb_cloud_init" {
 }
 
 resource "aws_instance" "city_lb" {
-  ami = "${data.aws_ami.lb_ami.id}"
-  instance_type = "t2.micro"
-  user_data = "${data.template_file.city_lb_cloud_init.rendered}"
-  iam_instance_profile = "${aws_iam_instance_profile.city_host_profile.name}"
-  subnet_id = "${aws_subnet.city_vpc_subnet.id}"
-  monitoring = true
+  ami                    = "${data.aws_ami.lb_ami.id}"
+  instance_type          = "t2.micro"
+  user_data              = "${data.template_file.city_lb_cloud_init.rendered}"
+  iam_instance_profile   = "${aws_iam_instance_profile.city_host_profile.name}"
+  subnet_id              = "${aws_subnet.city_vpc_subnet.id}"
+  monitoring             = true
   vpc_security_group_ids = ["${aws_security_group.city_servers.id}"]
 
   lifecycle {
@@ -92,9 +103,56 @@ resource "aws_instance" "city_lb" {
 
   tags {
     District = "city"
-    Usage = "app"
-    Name = "city_lb"
-    Role = "lb"
+    Usage    = "app"
+    Name     = "city_lb"
+    Role     = "lb"
+    Environment = "${var.environment}"
+  }
+
+  provisioner "remote-exec" {
+    when             = "destroy"
+    inline           = [
+      "consul leave"
+    ]
+  }
+}
+
+data "template_file" "dmz_host_cloud_init" {
+  template = "${file("${path.module}/cloud-init/dmz_host.yml")}"
+  vars {
+    hostname = "dmz"
+    openvpn_server = "${indent(6, file("/keybase/team/userland/openvpn_server.conf"))}"
+  }
+}
+
+
+resource "aws_instance" "dmz" {
+  ami                    = "${data.aws_ami.dmz_ami.id}"
+  instance_type          = "t2.micro"
+  iam_instance_profile   = "${aws_iam_instance_profile.city_host_profile.name}"
+  user_data              = "${data.template_file.dmz_host_cloud_init.rendered}"
+  subnet_id              = "${aws_subnet.city_vpc_subnet.id}"
+  monitoring             = true
+  vpc_security_group_ids = ["${aws_security_group.city_servers.id}", "${aws_security_group.dmz_server.id}"]
+  source_dest_check      = false
+
+  lifecycle {
+    create_before_destroy = 1
+  }
+
+  tags {
+    District = "dmz"
+    Usage    = "infra"
+    Name     = "dmz"
+    Role     = "vpn"
+    Environment = "${var.environment}"
+  }
+
+  provisioner "remote-exec" {
+    when             = "destroy"
+    inline           = [
+      "consul leave"
+    ]
   }
 }
 
@@ -110,6 +168,7 @@ resource "aws_vpc" "city_vpc" {
   tags {
     District = "city"
     Usage = "app"
+    Environment = "${var.environment}"
   }
 }
 
@@ -121,6 +180,19 @@ resource "aws_eip" "city_lb_ip" {
     District = "city"
     Usage = "app"
     Role = "lb"
+    Environment = "${var.environment}"
+  }
+}
+
+resource "aws_eip" "dmz_ip" {
+  instance = "${aws_instance.dmz.id}"
+  vpc = true
+
+  tags {
+    District = "dmz"
+    Usage = "infra"
+    Role = "vpn"
+    Environment = "${var.environment}"
   }
 }
 
@@ -132,5 +204,30 @@ resource "aws_subnet" "city_vpc_subnet" {
   tags {
     District = "city"
     Usage = "app"
+    Environment = "${var.environment}"
   }
+}
+
+resource "aws_route_table" "city_route_table" {
+  vpc_id = "${aws_vpc.city_vpc.id}"
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = "igw-31dcf457"
+  }
+
+  route {
+    cidr_block = "172.16.0.0/16"
+    instance_id = "${aws_instance.dmz.id}"
+  }
+
+  tags = {
+    Name = "city"
+    Environment = "${var.environment}"
+  }
+}
+
+resource "aws_main_route_table_association" "city_main_route" {
+  vpc_id         = "${aws_vpc.city_vpc.id}"
+  route_table_id = "${aws_route_table.city_route_table.id}"
 }

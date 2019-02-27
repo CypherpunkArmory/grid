@@ -21,7 +21,7 @@
    - name: Rotate the log
      command: journalctl --rotate
 
-   - name: Vacuum anything older than 1s
+   - name: Vacuum anything older than 0s
      command: journalctl --vacuum-time=0s
 
    - name: Clear Consul / Nomad / Docker Data
@@ -46,5 +46,12 @@
        - name: Clear Docker
          command: rm -rf /var/lib/docker/*
          when: docker.stat.exists
+
+       - stat: path=/root/.vault-token
+         register: vault_token
+
+       - name: Clear Vault Token
+         command: rm /root/.vault-token
+         when: vault_token.stat.exists
 
 

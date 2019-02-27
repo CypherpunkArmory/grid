@@ -1,0 +1,9 @@
+#!/bin/bash
+
+echo "Fetching SSH Import Ids"
+
+while IFS='' read -r line || [[ -n "$line" ]]; do
+  ssh-import-id $line
+done < /etc/ssh/import_keys
+
+exit 0
