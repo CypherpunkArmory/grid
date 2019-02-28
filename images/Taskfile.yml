@@ -163,9 +163,12 @@ tasks:
   clean-remote:
     prefix: 'Clean Remote {{.DISTRICT}}'
     dir: "{{.DISTRICT}}"
+    silent: true
     vars:
       AMI_IDS:
-        sh: aws ec2 describe-images --owners self --filter "Name=tag:District,Values={{.DISTRICT}}" --query 'Images[? Tags[?Key == `Version` && Value == `{{.VER}}`]].ImageId'
+        sh: aws ec2 describe-images --owners self --filter "Name=tag:District,Values={{.DISTRICT}}" --query 'Images[? Tags[?Key == `Version` && Value != `{{.VER}}`]].ImageId' --output text
+    cmds:
+      - for ami in {{.AMI_IDS}}; do aws ec2 deregister-image --image-id $ami; echo "Deleting - $ami"; done
 
   list-amis:
     prefix: 'Listing AMIS for {{.DISTRICT}}'

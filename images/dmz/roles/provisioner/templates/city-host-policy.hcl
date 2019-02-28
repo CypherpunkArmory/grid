@@ -1,6 +1,25 @@
-# Allow the city-host IAM profile to fetch a nomad-server token
+# Allow the city_host IAM profile to obtain a nomad-policy token
 path "auth/token/create/nomad-server" {
-  capabilities = [ "update" ]
+  capabilities = ["update"]
+}
+
+# Allow looking up the token passed to Nomad to validate # the token has the
+# proper capabilities. This is provided by the "default" policy.
+path "auth/token/lookup-self" {
+  capabilities = ["read"]
+}
+
+# Allow looking up incoming tokens to validate they have permissions to access
+# the tokens they are requesting. This is only required if
+# `allow_unauthenticated` is set to false.
+path "auth/token/lookup" {
+  capabilities = ["update"]
+}
+
+# Allow revoking tokens that should no longer exist. This allows revoking
+# tokens for dead tasks.
+path "auth/token/revoke-accessor" {
+  capabilities = ["update"]
 }
 
 # Allow checking the capabilities of our own token. This is used to validate the
@@ -13,4 +32,3 @@ path "sys/capabilities-self" {
 path "auth/token/renew-self" {
   capabilities = ["update"]
 }
-

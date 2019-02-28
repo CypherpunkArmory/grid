@@ -15,7 +15,7 @@
       command: vault auth enable aws
 
     - name: Write City Host Policy to vault
-      command: "vault policy write dev-policy {{role_path}}/templates/city-host-policy.hcl"
+      command: "vault policy write city-host-policy {{role_path}}/templates/city-host-policy.hcl"
 
     - name: Write policy attachment for the city_host IAM profile
       shell: |

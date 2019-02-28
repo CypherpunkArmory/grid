@@ -72,4 +72,7 @@
       src: templates/docker-config.json
       dest: /home/nomad/.docker/config.json
 
+- import_tasks: vault.yml
+- import_tasks: obtain-vault-token.yml
+
 

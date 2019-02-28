@@ -3,7 +3,8 @@ Description=Nomad
 Documentation=https://nomadproject.io/docs/
 StartLimitIntervalSec=10
 Wants=network-online.target
-After=network-online.target docker.service set-ip.service consul.service
+Requires=vault-token.service
+After=network-online.target docker.service set-ip.service consul.service vault-token.service
 
 [Service]
 KillMode=process

@@ -2,12 +2,21 @@ bind_addr = "0.0.0.0"
 data_dir = "/var/lib/nomad/"
 datacenter = "{{ district }}"
 
+{% raw %}
 advertise {
   # This should be the IP of THIS MACHINE and must be routable by every node
   # in your cluster
-  http = "0.0.0.0"
-  rpc  = "0.0.0.0"
-  serf = "0.0.0.0"
+  http = "{{ GetPrivateIP }}"
+  rpc  = "{{ GetPrivateIP }}"
+  serf = "{{ GetPrivateIP }}"
+}
+{% endraw %}
+
+vault {
+  enabled = true
+  address = "http://vault:8200"
+  create_from_role = "nomad-cluster"
+  token = "<TOKEN>"
 }
 
 telemetry {

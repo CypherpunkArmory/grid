@@ -12,6 +12,10 @@ data "aws_iam_policy" "change_password" {
  arn = "arn:aws:iam::aws:policy/IAMUserChangePassword"
 }
 
+data "aws_iam_policy" "dynamo_db" {
+  arn = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
+}
+
 # AWS IAM GROUPS
 
 # The "Admin" group is not managed by Terraform
@@ -31,6 +35,11 @@ resource "aws_iam_group_policy_attachment" "developers_policy" {
 resource "aws_iam_group_policy_attachment" "change_password_policy" {
   group      = "${aws_iam_group.developers.name}"
   policy_arn = "${data.aws_iam_policy.change_password.arn}"
+}
+
+resource "aws_iam_group_policy_attachment" "dynamo_db_access" {
+  group      = "${aws_iam_group.developers.name}"
+  policy_arn = "${data.aws_iam_policy.dynamo_db.arn}"
 }
 
 resource "aws_iam_group" "robots" {

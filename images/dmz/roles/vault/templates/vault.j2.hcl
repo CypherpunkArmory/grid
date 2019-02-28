@@ -1,3 +1,7 @@
+{% raw %}
+api_addr = "http://{{ GetPrivateIP }}:8200"
+{% endraw %}
+
 storage "dynamodb" {
   ha_enabled = "true"
   table      = "vault-secrets-{{ env }}"

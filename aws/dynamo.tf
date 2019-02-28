@@ -1,8 +1,8 @@
 resource "aws_dynamodb_table" "vault-secrets" {
   name           = "vault-secrets-${var.environment}"
 
-  read_capacity  = 1
-  write_capacity = 1
+  read_capacity  = 5
+  write_capacity = 5
 
   hash_key       = "Path"
   range_key      = "Key"

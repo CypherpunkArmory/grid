@@ -1,6 +1,7 @@
 [Unit]
 Description=Import SSH Keys
-After=network.target consul.service
+Wants=consul.service
+After=network.target consul.service cloud-init.service
 
 [Service]
 Type=oneshot

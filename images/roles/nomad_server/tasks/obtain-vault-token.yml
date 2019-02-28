@@ -1,0 +1,17 @@
+---
+- name: Install Vault Token script
+  template:
+    src: templates/vault-token.sh
+    dest: /usr/bin/vault-token.sh
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Install Vault Token one-shot service
+  copy:
+    src: templates/vault-token.service
+    dest: /usr/lib/systemd/user/vault-token.service
+
+- name: Enable Vault Token service at boot
+  command: systemctl enable /usr/lib/systemd/user/vault-token.service
+

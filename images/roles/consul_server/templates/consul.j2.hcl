@@ -9,7 +9,9 @@ bootstrap_expect = {{ cluster_size }}
 
 raft_protocol = 3
 
-advertise_addr = "0.0.0.0"
+{% raw %}
+advertise_addr = "{{ GetPrivateIP }}"
+{% endraw %}
 
 addresses {
   dns = "0.0.0.0"

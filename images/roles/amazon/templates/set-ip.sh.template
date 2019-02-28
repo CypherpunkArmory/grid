@@ -4,19 +4,10 @@ echo "Running IP Addr Replace"
 
 LOCAL_IPV4=$(ec2metadata --local-ipv4)
 
-if [ -f /etc/consul.hcl ]; then
-  sed -i "s/advertise_addr.*/advertise_addr = \"$LOCAL_IPV4\"/" /etc/consul.hcl
-fi
-
-if [ -f /etc/nomad.hcl ]; then
-  sed -i "s/http.*/http = \"$LOCAL_IPV4\"/" /etc/nomad.hcl
-  sed -i "s/rpc.*/rpc = \"$LOCAL_IPV4\"/" /etc/nomad.hcl
-  sed -i "s/serf.*/serf = \"$LOCAL_IPV4\"/" /etc/nomad.hcl
-fi
-
 if [ -f /etc/openvpn/server.conf ]; then
-  sed -i "s/local.*/local $LOCAL_IPV4/" /etc/openvpn/server.conf
-  sed -i "s/push \"dhcp-option DNS.*/push \"dhcp-option DNS $LOCAL_IPV4\"/" /etc/openvpn/server.conf
+  echo "Changing OpenVPN IP"
+  sed -i "s/<LOCAL_IPV4>/$LOCAL_IPV4/" /etc/openvpn/server.conf
 fi
 
+echo "Success"
 exit 0

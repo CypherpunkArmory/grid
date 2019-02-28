@@ -4,6 +4,9 @@ system_info:
   default_user:
     name: alan
 
+ssh_authorized_keys:
+  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDsyDvFpGurHAFb0bEIksovsIBPolkcf8whk21L9jf5IgMqevRcn0KgDsylXMUmK1+F9ro8eE9CcGAeD+vzPpnqovs9mJSlC8pkmGCgHfmUsmZr7vuPkOkBQ2ltntuSfmnt5mhlM8U4ybfsYKOPg+qY+SjcTjeHEzCTlxRiPLixDTvKdznJ7kO/XrqTg28RfIPCKimEbyvPiPJNM5UJfjx45QayyGddnOOuOMlnMEOM/e42gpGvaabQPGUyRtoFtpGD6i5JyrNoV2Tu+lp3XZfp6qdyzcbZBFcV7H7ZP9F/0ng3emwqEvw77DnWBTVXSqFe8MX0aQLUGuOP60PnQsaX stephenprater@tnuctip.local
+
 write_files:
   - path: /etc/ssh/import_keys
     content: |

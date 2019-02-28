@@ -4,6 +4,7 @@ Documentation=https://consul.io/docs/
 StartLimitIntervalSec=10
 Wants=network-online.target
 After=set-ip.service
+Requires=set-ip.service
 
 [Service]
 KillMode=process
