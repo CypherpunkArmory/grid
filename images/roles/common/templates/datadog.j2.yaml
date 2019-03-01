@@ -1,4 +1,4 @@
-#jinja2: lstrip-blocks: True
+#jinja2: lstrip_blocks: "true", trim_blocks: "false"
 # The host of the Datadog intake server to send Agent data to
 dd_url: https://app.datadoghq.com
 
@@ -12,9 +12,9 @@ tags:
   - district:{{ district }}
   - env:{{ env }}
 {% for tag in role_names %}
-  {% if tag != 'common' %}
+{% if tag != 'common' %}
   - {{ tag }}
-  {% endif %}
+{% endif %}
 {% endfor %}
 {% for tag in datadog_tags %}
   - {{ tag }}
@@ -30,7 +30,7 @@ logs_enabled: true
 
 # Enable logs collection for all containers, disabled by default
 logs_config:
-  container_collect_all: false
+  container_collect_all: true
 
 process_config:
   enabled: true
