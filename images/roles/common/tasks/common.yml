@@ -19,6 +19,12 @@
       LC_ALL="en_US.UTF-8"
       LANG="en_US.UTF-8"
 
+- name: Set the Vault Addr Globally
+  lineinfile:
+    path: /etc/environment
+    regexp: '^VAULT_ADDR='
+    line: 'VAULT_ADDR=http://vault:8200'
+
 - name: Disable unattended upgrades while we're ansibiling
   block:
     - command: systemctl disable apt-daily.service

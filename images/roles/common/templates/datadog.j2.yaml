@@ -1,4 +1,4 @@
-
+#jinja2: lstrip-blocks: True
 # The host of the Datadog intake server to send Agent data to
 dd_url: https://app.datadoghq.com
 
@@ -28,8 +28,13 @@ collect_ec2_tags: true
 # Logs agent is disabled by default
 logs_enabled: true
 
-#
 # Enable logs collection for all containers, disabled by default
+logs_config:
+  container_collect_all: false
 
 process_config:
   enabled: true
+
+apm_config:
+  enabled: true
+  apm_non_local_traffic: true

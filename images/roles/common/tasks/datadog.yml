@@ -27,6 +27,7 @@
         src: templates/datadog.j2.yaml
         dest: /etc/datadog-agent/datadog.yaml
         owner: dd-agent
+        group: dd-agent
         mode: 0600
 
     - name: Clear the extra conf.d directories

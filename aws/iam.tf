@@ -16,6 +16,9 @@ data "aws_iam_policy" "dynamo_db" {
   arn = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
 }
 
+# current account id
+data "aws_caller_identity" "current" {}
+
 # AWS IAM GROUPS
 
 # The "Admin" group is not managed by Terraform
@@ -30,6 +33,11 @@ resource "aws_iam_group" "developers" {
 resource "aws_iam_group_policy_attachment" "developers_policy" {
   group      = "${aws_iam_group.developers.name}"
   policy_arn = "${data.aws_iam_policy.developers.arn}"
+}
+
+resource "aws_iam_group_policy_attachment" "developers_admin_policy" {
+  group      = "${aws_iam_group.developers.name}"
+  policy_arn = "${data.aws_iam_policy.administrator.arn}"
 }
 
 resource "aws_iam_group_policy_attachment" "change_password_policy" {
@@ -74,6 +82,7 @@ resource "aws_iam_user" "emailer" {
   }
 }
 
+
 resource "aws_iam_user_group_membership" "emailer_user_groups" {
   user = "${aws_iam_user.emailer.name}"
   groups = [
@@ -86,7 +95,19 @@ resource "aws_iam_access_key" "emailer_key" {
   user = "${aws_iam_user.emailer.name}"
 }
 
+resource "aws_iam_user" "certbot" {
+  name = "certbot"
+  tags {
+    Substrate = "silicon"
+  }
+}
 
+resource "aws_iam_user_group_membership" "certbot_user_groups" {
+  user = "${aws_iam_user.certbot.name}"
+  groups = [
+    "${aws_iam_group.robots.name}"
+  ]
+}
 
 # AWS Policies
 
@@ -101,6 +122,72 @@ resource "aws_iam_policy" "emailer" {
       "Effect": "Allow",
       "Action": "ses:SendRawEmail",
       "Resource": "*"
+    }
+  ]
+}
+POLICY
+}
+
+resource "aws_iam_policy" "certbot" {
+  description = "Permission Policy for Certbot Auto"
+  name = "certbot"
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Id": "certbot-dns-route53 sample policy",
+  "Statement": [
+      {
+          "Effect": "Allow",
+          "Action": [
+              "route53:ListHostedZones",
+              "route53:GetChange"
+          ],
+          "Resource": [
+              "*"
+          ]
+      },
+      {
+          "Effect" : "Allow",
+          "Action" : [
+              "route53:ChangeResourceRecordSets"
+          ],
+          "Resource" : [
+              "arn:aws:route53:::hostedzone/*"
+          ]
+      }
+  ]
+}
+POLICY
+}
+
+resource "aws_iam_policy" "vault_policy" {
+  description = "Role policy for Vault AWS Secret Issuer"
+  name = "vault"
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Id": "vault-aws secret issuer policy",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "iam:AttachUserPolicy",
+        "iam:CreateAccessKey",
+        "iam:CreateUser",
+        "iam:DeleteAccessKey",
+        "iam:DeleteUser",
+        "iam:DeleteUserPolicy",
+        "iam:DetachUserPolicy",
+        "iam:ListAccessKeys",
+        "iam:ListAttachedUserPolicies",
+        "iam:ListGroupsForUser",
+        "iam:ListUserPolicies",
+        "iam:PutUserPolicy",
+        "iam:RemoveUserFromGroup"
+      ],
+      "Resource": [
+        "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/vault-*"
+      ]
     }
   ]
 }
@@ -372,15 +459,52 @@ resource "aws_iam_role" "city_host" {
 ASSUME
 }
 
+resource "aws_iam_role" "dmz_host" {
+  name               = "dmz_host"
+  description        = "IAM Role for City Host machines"
+  assume_role_policy = <<ASSUME
+{
+   "Version": "2012-10-17",
+   "Statement": [
+      {
+         "Effect": "Allow",
+         "Principal": { "Service": "ec2.amazonaws.com" },
+         "Action": "sts:AssumeRole"
+      }
+   ]
+}
+ASSUME
+}
+
 resource "aws_iam_instance_profile" "city_host_profile" {
   name = "city_host_profile"
   role = "${aws_iam_role.city_host.name}"
+}
+
+resource "aws_iam_instance_profile" "dmz_host_profile" {
+  name = "dmz_host_profile"
+  role = "${aws_iam_role.dmz_host.name}"
 }
 
 
 resource "aws_iam_role_policy_attachment" "city_host_policy_attach" {
   role = "${aws_iam_role.city_host.name}"
   policy_arn = "${aws_iam_policy.city_host.arn}"
+}
+
+resource "aws_iam_role_policy_attachment" "vault_city_host_policy_attach" {
+  role = "${aws_iam_role.dmz_host.name}"
+  policy_arn = "${aws_iam_policy.city_host.arn}"
+}
+
+resource "aws_iam_role_policy_attachment" "dmz_vault_policy_attach" {
+  role = "${aws_iam_role.dmz_host.name}"
+  policy_arn = "${aws_iam_policy.vault_policy.arn}"
+}
+
+resource "aws_iam_user_policy_attachment" "certbot_certbot_policy_attach" {
+  user = "${aws_iam_user.certbot.name}"
+  policy_arn = "${aws_iam_policy.certbot.arn}"
 }
 
 resource "aws_iam_user_policy_attachment" "provisioner_provisioner_policy_attach" {

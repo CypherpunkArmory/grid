@@ -6,7 +6,11 @@ ui = true
 
 raft_protocol = 3
 
-advertise_addr = "0.0.0.0"
+{% raw %}
+advertise_addr = "{{ GetPrivateIP }}"
+{% endraw %}
+
+client_addr = "0.0.0.0"
 
 addresses {
   dns = "0.0.0.0"

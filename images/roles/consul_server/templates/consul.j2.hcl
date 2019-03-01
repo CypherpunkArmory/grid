@@ -8,6 +8,7 @@ server = true
 bootstrap_expect = {{ cluster_size }}
 
 raft_protocol = 3
+client_addr = "0.0.0.0"
 
 {% raw %}
 advertise_addr = "{{ GetPrivateIP }}"

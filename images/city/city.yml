@@ -21,4 +21,5 @@
     - common
     - consul_server
     - docker
+    - vault-client
     - nomad_server
