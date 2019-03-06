@@ -1,4 +1,0 @@
-init_config:
-
-instances:
-  - api_url: http://127.0.0.1:8200/v1

@@ -1,3 +1,0 @@
----
-- import_tasks: consul.yml
-- import_tasks: datadog.yml

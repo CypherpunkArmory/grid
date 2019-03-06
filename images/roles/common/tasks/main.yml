@@ -1,5 +1,0 @@
----
-- import_tasks: common.yml
-- import_tasks: create_login_user.yml
-- import_tasks: datadog.yml
-- import_tasks: motd.yml
