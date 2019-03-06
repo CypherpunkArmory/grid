@@ -24,6 +24,7 @@
     path: /etc/environment
     regexp: '^VAULT_ADDR='
     line: 'VAULT_ADDR=http://vault:8200'
+    create: yes
 
 - name: Disable unattended upgrades while we're ansibiling
   block:

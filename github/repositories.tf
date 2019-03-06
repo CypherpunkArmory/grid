@@ -20,7 +20,7 @@ resource "github_repository" "holepunch" {
   name        = "holepunch"
   description = "Holepunch API"
 
-  private = "true"
+  private = "false"
 
   has_downloads = "false"
   has_issues    = "true"

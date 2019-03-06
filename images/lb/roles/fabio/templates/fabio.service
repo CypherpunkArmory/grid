@@ -12,6 +12,10 @@ Type=simple
 User=fabio
 Group=fabio
 WorkingDirectory=/
+ReadWritePaths=/etc/fabio.env
+ExecStartPre=/usr/bin/fabio-vault.sh
+EnvironmentFile=/etc/fabio.env
+Environment=VAULT_TOKEN=${VAULT_TOKEN}
 ExecStart=/usr/bin/fabio -cfg /etc/fabio.conf
 Restart=always
 PrivateDevices=yes

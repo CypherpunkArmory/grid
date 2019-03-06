@@ -32,6 +32,16 @@ logs_enabled: true
 logs_config:
   container_collect_all: true
 
+  processing_rules:
+    - type: exclude_at_match
+      name: exclude_health_checks
+      pattern: .*health_check
+
+    - type: exclude_at_match
+      name: exclude_health_checks
+      pattern: Failed password for root
+
+
 process_config:
   enabled: true
 

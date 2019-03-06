@@ -9,6 +9,7 @@ After=network-online.target docker.service set-ip.service consul.service vault-t
 [Service]
 KillMode=process
 KillSignal=SIGINT
+ExecStartPre=/usr/bin/vault-token.sh
 ExecStart=/usr/bin/nomad agent -config /etc/nomad.hcl
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=on-failure

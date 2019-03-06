@@ -20,10 +20,14 @@
     - name: Write DMZ Host Policy to vault
       command: "vault policy write dmz-host-policy {{role_path}}/templates/dmz-host-policy.hcl"
 
+    - name: Write LB Host Policy to vault
+      command: "vault policy write lb-host-policy {{role_path}}/templates/lb-host-policy.hcl"
+
     - name: Write policy attachment for the city_host IAM profile
       shell: |
          vault write auth/aws/role/city-host auth_type=iam bound_iam_principal_arn=arn:aws:iam::{{aws_account_id}}:role/city_host policies=city-host-policy max_ttl=500h
          vault write auth/aws/role/dmz-host auth_type=iam bound_iam_principal_arn=arn:aws:iam::{{aws_account_id}}:role/dmz_host policies=dmz-host-policy max_ttl=500h
+         vault write auth/aws/role/lb-host auth_type=iam bound_iam_principal_arn=arn:aws:iam::{{aws_account_id}}:role/lb_host policies=lb-host-policy max_ttl=500h
 
 - name: Enable AWS Secrets
   when: "'aws/' not in secrets'"

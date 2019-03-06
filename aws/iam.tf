@@ -476,6 +476,24 @@ resource "aws_iam_role" "dmz_host" {
 ASSUME
 }
 
+resource "aws_iam_role" "lb_host" {
+  name               = "lb_host"
+  description        = "IAM Role for LB Host machines"
+  assume_role_policy = <<ASSUME
+{
+   "Version": "2012-10-17",
+   "Statement": [
+      {
+         "Effect": "Allow",
+         "Principal": { "Service": "ec2.amazonaws.com" },
+         "Action": "sts:AssumeRole"
+      }
+   ]
+}
+ASSUME
+}
+
+
 resource "aws_iam_instance_profile" "city_host_profile" {
   name = "city_host_profile"
   role = "${aws_iam_role.city_host.name}"
@@ -484,6 +502,11 @@ resource "aws_iam_instance_profile" "city_host_profile" {
 resource "aws_iam_instance_profile" "dmz_host_profile" {
   name = "dmz_host_profile"
   role = "${aws_iam_role.dmz_host.name}"
+}
+
+resource "aws_iam_instance_profile" "lb_host_profile" {
+  name = "lb_host_profile"
+  role = "${aws_iam_role.lb_host.name}"
 }
 
 

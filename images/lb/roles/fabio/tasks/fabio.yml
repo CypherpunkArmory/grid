@@ -22,6 +22,12 @@
         src: templates/fabio.service
         dest: /usr/lib/systemd/user/fabio.service
 
+    - name: Copy the login script to /usr/bin
+      copy:
+        src: templates/fabio-vault.sh
+        dest: /usr/bin/fabio-vault.sh
+        mode: 0755
+
     - name: Copy Fabio Conf File
       template:
         src: templates/fabio.j2.conf

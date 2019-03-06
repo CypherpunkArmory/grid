@@ -92,7 +92,7 @@ resource "aws_instance" "city_lb" {
   ami                    = "${data.aws_ami.lb_ami.id}"
   instance_type          = "t2.micro"
   user_data              = "${data.template_file.city_lb_cloud_init.rendered}"
-  iam_instance_profile   = "${aws_iam_instance_profile.city_host_profile.name}"
+  iam_instance_profile   = "${aws_iam_instance_profile.lb_host_profile.name}"
   subnet_id              = "${aws_subnet.city_vpc_subnet.id}"
   monitoring             = true
   vpc_security_group_ids = ["${aws_security_group.city_servers.id}"]
