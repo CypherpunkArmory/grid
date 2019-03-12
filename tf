@@ -1,2 +1,14 @@
 #!/bin/bash
-DOTENV_FILE=/keybase/team/userland/terraform.env dot_env terraform "$@"
+
+USAGE="./tf <statename> ...terraform arguments"
+
+if [ "$#" == "0" ]; then
+  echo "$USAGE"
+  exit 1
+fi
+
+cd $1
+
+shift
+
+terraform "$@"

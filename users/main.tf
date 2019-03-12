@@ -1,3 +1,30 @@
+terraform {
+  backend "s3" {
+    bucket = "userland.tech.terraform"
+    key = "users.tfstate"
+    region = "us-west-2"
+    # path = "./terraform.tfstate"
+  }
+}
+
+data "terraform_remote_state" "aws_shared" {
+  backend = "s3"
+  config {
+    bucket = "userland.tech.terraform"
+    key = "aws_shared.tfstate"
+    region = "us-west-2"
+  }
+}
+
+data "terraform_remote_state" "github" {
+  backend = "s3"
+  config {
+    bucket = "userland.tech.terraform"
+    key = "github.tfstate"
+    region = "us-west-2"
+  }
+}
+
 # Prater
 module "prater" {
   source = "./user"
@@ -6,7 +33,7 @@ module "prater" {
   github_name = "stephenprater"
   github_role = "admin"
   name = "Stephen Prater"
-  userland_team_id = "${var.userland_team_id}"
+  userland_team_id = "${data.terraform_remote_state.github.userland_team_id}"
 }
 
 # Corbin
@@ -18,7 +45,7 @@ module "corbin" {
   github_name = "corbinlc"
   github_role = "admin"
   name = "Corbin Champion"
-  userland_team_id = "${var.userland_team_id}"
+  userland_team_id = "${data.terraform_remote_state.github.userland_team_id}"
 }
 
 # Andrew
@@ -30,7 +57,7 @@ module "andrew" {
   github_name = "AndrewScibek"
   github_role = "admin"
   name = "Andrew Scibek"
-  userland_team_id = "${var.userland_team_id}"
+  userland_team_id = "${data.terraform_remote_state.github.userland_team_id}"
 }
 
 # Matthew
@@ -42,7 +69,7 @@ module "matthew" {
   github_name = "MatthewTighe"
   github_role = "admin"
   name = "Matthew Tighe"
-  userland_team_id = "${var.userland_team_id}"
+  userland_team_id = "${data.terraform_remote_state.github.userland_team_id}"
 }
 
 # Thomas
@@ -54,12 +81,12 @@ module "thomas" {
   github_name = "luongthomas"
   github_role = "admin"
   name = "Thomas Luong"
-  userland_team_id = "${var.userland_team_id}"
+  userland_team_id = "${data.terraform_remote_state.github.userland_team_id}"
 }
 
 resource "aws_iam_group_membership" "admins" {
   name = "admin_membership"
-  group = "${var.aws_admin_group}"
+  group = "${data.terraform_remote_state.aws_shared.admin_group_name}"
   users = [
     "${module.prater.username}",
     "${module.corbin.username}"
@@ -68,7 +95,7 @@ resource "aws_iam_group_membership" "admins" {
 
 resource "aws_iam_group_membership" "developers" {
   name = "developers_membership"
-  group = "${var.aws_dev_group}"
+  group = "${data.terraform_remote_state.aws_shared.dev_group_name}"
   users = [
     "${module.prater.username}",
     "${module.corbin.username}",

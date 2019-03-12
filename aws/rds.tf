@@ -1,13 +1,13 @@
 resource "aws_db_instance" "city_rds" {
   allocated_storage = 10
-  identifier = "city-db"
+  identifier = "city-db-${terraform.workspace}"
   storage_type = "gp2"
   engine = "postgres"
   engine_version = "10.6"
-  instance_class = "db.m4.large"
+  instance_class = "${ terraform.workspace == "prod" ? "db.t2.small" : "db.t2.micro" }"
   availability_zone = "us-west-2c"
   username = "postgres"
-  password = "hVqiboPnBeGrgg3"
+  # password = "${var.rds_password}"
   db_subnet_group_name = "${aws_db_subnet_group.city_db.name}"
   multi_az = false
   skip_final_snapshot = true
@@ -18,7 +18,7 @@ resource "aws_db_instance" "city_rds" {
     Usage = "app"
     Name = "city_db"
     Role = "db"
-    Environment = "${var.environment}"
+    Environment = "${terraform.workspace}"
   }
 }
 
@@ -30,7 +30,7 @@ resource "aws_db_subnet_group" "city_db" {
   tags {
     District = "city"
     Usage = "db"
-    Environment = "${var.environment}"
+    Environment = "${terraform.workspace}"
   }
 }
 
@@ -44,6 +44,6 @@ resource "aws_subnet" "city_backup_subnet" {
     District = "city"
     Usage = "infra"
     Role = "db"
-    Environment = "${var.environment}"
+    Environment = "${terraform.workspace}"
   }
 }

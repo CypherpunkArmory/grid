@@ -1,5 +1,5 @@
 resource "aws_dynamodb_table" "vault-secrets" {
-  name           = "vault-secrets-${var.environment}"
+  name           = "vault-secrets-${terraform.workspace}"
 
   read_capacity  = 5
   write_capacity = 5
@@ -18,8 +18,10 @@ resource "aws_dynamodb_table" "vault-secrets" {
   }
 
   tags {
-    Name        = "vault-dynamodb-table"
-    Environment = "${var.environment}"
     District    = "city"
+    Usage       = "infra"
+    Name        = "city_vault"
+    Role        = "db"
+    Environment = "${terraform.workspace}"
   }
 }

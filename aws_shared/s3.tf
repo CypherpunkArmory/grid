@@ -5,9 +5,7 @@ resource "aws_s3_bucket" "city_amis" {
 
   tags {
     Name = "Userland City AMIs"
-    Environment = "production"
     District = "city"
     Usage = "infra"
-    Environment = "${var.environment}"
   }
 }

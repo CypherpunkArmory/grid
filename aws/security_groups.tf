@@ -6,7 +6,7 @@ resource "aws_security_group" "city_servers" {
   tags {
     District = "city"
     Usage = "app"
-    Environment = "${var.environment}"
+    Environment = "${terraform.workspace}"
   }
 }
 
@@ -17,7 +17,7 @@ resource "aws_security_group" "dmz_server" {
 
   tags {
     District = "dmz"
-    Environment = "${var.environment}"
+    Environment = "${terraform.workspace}"
   }
 }
 

@@ -9,7 +9,7 @@ resource "aws_vpc" "city_vpc" {
   tags {
     District = "city"
     Usage = "app"
-    Environment = "${var.environment}"
+    Environment = "${terraform.workspace}"
   }
 }
 
@@ -21,7 +21,7 @@ resource "aws_subnet" "city_vpc_subnet" {
   tags {
     District = "city"
     Usage = "app"
-    Environment = "${var.environment}"
+    Environment = "${terraform.workspace}"
   }
 }
 
@@ -30,6 +30,7 @@ resource "aws_route_table" "city_route_table" {
 
   route {
     cidr_block = "0.0.0.0/0"
+    # FIXME
     gateway_id = "igw-31dcf457"
   }
 
@@ -40,7 +41,7 @@ resource "aws_route_table" "city_route_table" {
 
   tags = {
     Name = "city"
-    Environment = "${var.environment}"
+    Environment = "${terraform.workspace}"
   }
 }
 
@@ -57,7 +58,7 @@ resource "aws_eip" "city_lb_ip" {
     District = "city"
     Usage = "app"
     Role = "lb"
-    Environment = "${var.environment}"
+    Environment = "${terraform.workspace}"
   }
 }
 
@@ -69,6 +70,6 @@ resource "aws_eip" "dmz_ip" {
     District = "dmz"
     Usage = "infra"
     Role = "vpn"
-    Environment = "${var.environment}"
+    Environment = "${terraform.workspace}"
   }
 }

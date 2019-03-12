@@ -22,8 +22,8 @@ data "aws_caller_identity" "current" {}
 # AWS IAM GROUPS
 
 # The "Admin" group is not managed by Terraform
-data "aws_iam_group" "admins" {
-  group_name = "Admins"
+resource "aws_iam_group" "admins" {
+  name = "Admins"
 }
 
 resource "aws_iam_group" "developers" {
@@ -55,25 +55,6 @@ resource "aws_iam_group" "robots" {
 }
 
 # AWS Users
-
-resource "aws_iam_user" "provisioner" {
-  name = "provisioner"
-  tags {
-    Substrate = "silicon"
-  }
-}
-
-resource "aws_iam_user_group_membership" "provisioner_user_groups" {
-  user = "${aws_iam_user.provisioner.name}"
-  groups = [
-    "${aws_iam_group.robots.name}"
-  ]
-}
-
-resource "aws_iam_access_key" "provisioner_key" {
-  user = "${aws_iam_user.provisioner.name}"
-}
-
 
 resource "aws_iam_user" "emailer" {
   name = "emailer"
@@ -195,36 +176,6 @@ POLICY
 }
 
 
-resource "aws_iam_policy" "provisioner" {
-  description = "Role policy for provisioning machine"
-  name        = "provisioner"
-  policy      = <<POLICY
-{
-   "Version":"2012-10-17",
-   "Statement":[
-      {
-         "Effect":"Allow",
-         "Action":[
-            "dynamodb:*"
-         ],
-         "Resource":[
-            "${aws_dynamodb_table.vault-secrets.arn}"
-         ]
-      },
-      {
-         "Effect":"Allow",
-         "Action":[
-            "kms:Encrypt",
-            "kms:Decrypt",
-            "kms:DescribeKey"
-         ],
-         "Resource":"*"
-      }
-   ]
-}
-POLICY
-}
-
 
 resource "aws_iam_policy" "vmimport" {
   description = "Role policy for VMIE Amazon Service."
@@ -276,18 +227,10 @@ resource "aws_iam_policy" "city_host" {
             "iam:GetRole",
             "kms:Encrypt",
             "kms:Decrypt",
-            "kms:DescribeKey"
-         ],
-         "Resource": "*"
-      },
-      {
-         "Effect":"Allow",
-         "Action":[
+            "kms:DescribeKey",
             "dynamodb:*"
          ],
-         "Resource":[
-            "${aws_dynamodb_table.vault-secrets.arn}"
-         ]
+         "Resource": "*"
       }
    ]
 }
@@ -370,7 +313,9 @@ resource "aws_iam_policy" "datadog" {
         "logs:CreateLogStream",
         "logs:DescribeLogGroups",
         "logs:DescribeLogStreams",
-        "logs:PutLogEvents"
+        "logs:PutLogEvents",
+        "xray:BatchGetTraces",
+        "xray:GetTraceSummaries"
       ],
       "Effect": "Allow",
       "Resource": "*"
@@ -530,10 +475,6 @@ resource "aws_iam_user_policy_attachment" "certbot_certbot_policy_attach" {
   policy_arn = "${aws_iam_policy.certbot.arn}"
 }
 
-resource "aws_iam_user_policy_attachment" "provisioner_provisioner_policy_attach" {
-  user = "${aws_iam_user.provisioner.name}"
-  policy_arn = "${aws_iam_policy.provisioner.arn}"
-}
 
 resource "aws_iam_user_policy_attachment" "emailer_emailer_policy_attach" {
   user = "${aws_iam_user.emailer.name}"

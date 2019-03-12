@@ -1,54 +1,41 @@
 # The Grid
 
-
 Grid is our descriptive infrastructure repository.  We use Terraform to manage
-the infastructure for each of our projects from one repo.
+the overall infrastructure of the UserLAnd, etc infrastructure.
 
-We don't currently have a remote Terraform store, so you need to coordinate over
-voice network (ie, yell over the wall) that you are making infra changes.
+Terraform is _basically_ a managed API caller - and takes data from one API (or
+the same API at a different endpoint and uses it in calls to a different API.)
 
-Currently we're keeping AWS and Github Repos in here - but that's just to start.
+In order to accomplish this, Terraform maintains a consistent view of the
+infrastructure in a file called "The State" - our Terraform organization
+splits this file into several independently managed pieces based on their
+velocity.
 
-You can think of Terraform as basically being an API manager - it's a way to
-link disparate APIs together using "common data" that we store in this repo.
+1. Github
+2. AWS Shared (IAM, Network, DNS, Etc)
+3. AWS Environment
+4. Users (Manages users for Terraform Compatible APIS)
 
-Terraform Modules are organized in a couple of different dimensions.
+In order to modify these files, you need to either CD into the respective
+directory or use the `./tf` helper script.
 
-"Global" configuration is under a the namespace of the provider - so the
-definition of github repositories for this repo, the Userland Team, etc are
-under `/github` AWS Policy documents etc, are under `/aws`
+`./tf aws_shared <your terraform commands>`
 
-Project specific infrastructure is under the project directory - "Dumont" for
-instance - the python API that handles authentication and spin up request are
-under `/dumont`
+A Terraform tutorial is outside the scope of this README, but here are some
+tips for making changes.
 
-Project specific infrastructure may use multiple providers (and might duplicate
-data sources.)
+## Making A Temporary Environment
 
-## Limitations of Terraform
+In order to spin up test environments switch to the `aws` directory and then
+use a terraform workspace to create a new instance of the environment.
 
-Terraform doesn't allow you to "reference" modules from other modules, so we
-can't do something like reference the "Team" we created in Github in the User
-Module, we have to pass it in explicity.
+The domains are preset to
 
-Maybe Terraform 0.12 solves this - it makes a lot of changes to HCL.
+1. DMZ - <yourenvname>.testinghole.com
+2. API - <yourenvname>.orbtestenv.net
 
 
 ## Tagging Resources
 
-Each resource should be tagged with _at least_ two tags - it's "Name" and it's "District"
-
-"District" is either "city" or "sea"
-
-City servers run Userland / Foxhole infrastructure - NOT USER WORKLOADS
-Sea servers run user workloads.
-
-
-The main distinction is that Sea servers have limited monitoring and logging.
-
-Some resources are also tagged with "Usage" - "Usage" is either "app" or "infra"
-
-"app" Usage indicates that a resource is used for actually executing a
-particular app, "infra" indicates that it's infrastructure or tooling support.
-
-Individual containers and resource are labeled with the "app" they support.
+Your resources should be tagged liberally.  You're going to want to find them
+later.
