@@ -17,7 +17,3 @@ write_files:
       gh:corbinlc
       gh:MatthewTighe
       gh:luongthomas
-
-
-bootcmd:
-  - 'sed -i "s/datacenter.*/datacenter = \"${lb_district}\"/" /etc/consul.hcl'

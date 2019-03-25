@@ -17,6 +17,17 @@ resource "aws_subnet" "city_vpc_subnet" {
   vpc_id = "${aws_vpc.city_vpc.id}"
   cidr_block = "172.31.1.0/24"
   map_public_ip_on_launch = true
+  availability_zone = "us-west-2b"
+
+  tags {
+    District = "city"
+    Usage = "app"
+    Environment = "${terraform.workspace}"
+  }
+}
+
+resource "aws_internet_gateway" "gw" {
+  vpc_id = "${aws_vpc.city_vpc.id}"
 
   tags {
     District = "city"
@@ -28,21 +39,22 @@ resource "aws_subnet" "city_vpc_subnet" {
 resource "aws_route_table" "city_route_table" {
   vpc_id = "${aws_vpc.city_vpc.id}"
 
-  route {
-    cidr_block = "0.0.0.0/0"
-    # FIXME
-    gateway_id = "igw-31dcf457"
-  }
-
-  route {
-    cidr_block = "172.16.0.0/16"
-    instance_id = "${aws_instance.dmz.id}"
-  }
-
   tags = {
     Name = "city"
     Environment = "${terraform.workspace}"
   }
+}
+
+resource "aws_route" "default_route" {
+  route_table_id = "${aws_route_table.city_route_table.id}"
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id = "${aws_internet_gateway.gw.id}"
+}
+
+resource "aws_route" "vpn_route" {
+  route_table_id = "${aws_route_table.city_route_table.id}"
+  destination_cidr_block = "172.16.0.0/16"
+  instance_id = "${aws_instance.dmz.id}"
 }
 
 resource "aws_main_route_table_association" "city_main_route" {
@@ -51,8 +63,11 @@ resource "aws_main_route_table_association" "city_main_route" {
 }
 
 resource "aws_eip" "city_lb_ip" {
+  count = "${terraform.workspace == "prod" ? 1 : 0}"
   instance = "${aws_instance.city_lb.id}"
   vpc = true
+
+  depends_on = ["aws_internet_gateway.gw"]
 
   tags {
     District = "city"
@@ -63,8 +78,11 @@ resource "aws_eip" "city_lb_ip" {
 }
 
 resource "aws_eip" "dmz_ip" {
+  count = "${terraform.workspace == "prod" ? 1 : 0}"
   instance = "${aws_instance.dmz.id}"
   vpc = true
+
+  depends_on = ["aws_internet_gateway.gw"]
 
   tags {
     District = "dmz"

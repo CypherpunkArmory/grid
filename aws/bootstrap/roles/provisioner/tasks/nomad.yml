@@ -1,0 +1,32 @@
+---
+- name: Setup Nomad Policies
+  environment:
+    VAULT_TOKEN: "{{ vault_token }}"
+  when: "'nomad-server' not in policy_list"
+  block:
+    - name: Copy polcies to server
+      copy:
+        src: nomad-server.hcl
+        dest: /root/policies/nomad-server.hcl
+
+    - name: Write Nomad Policy to vault
+      command: "vault policy write nomad-server /root/policies/nomad-server.hcl"
+
+    - name: Copy role to server
+      copy:
+        src: nomad-cluster-role.json
+        dest: /root/policies/nomad-cluster-role.json
+
+    - name: Write Cluster Token Role to Vault
+      command: "vault write /auth/token/roles/nomad-cluster @/root/policies/nomad-cluster-role.json"
+
+    - name: Copy role to server
+      copy:
+        src: nomad-server-role.json
+        dest: /root/policies/nomad-server-role.json
+
+    - name: Write Server Token Role to Vault
+      command: "vault write /auth/token/roles/nomad-server @/root/policies/nomad-server-role.json"
+
+
+

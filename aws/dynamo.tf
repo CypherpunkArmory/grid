@@ -1,3 +1,6 @@
+
+data "aws_caller_identity" "current" {}
+
 resource "aws_dynamodb_table" "vault-secrets" {
   name           = "vault-secrets-${terraform.workspace}"
 

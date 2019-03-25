@@ -11,7 +11,7 @@ resource "aws_route53_record" "dmz_wildcard" {
   name = "*.${local.dmz_domain}"
   type = "A"
   ttl = 300
-  records = ["${aws_eip.dmz_ip.public_ip}"]
+  records = ["${terraform.workspace == "prod" ? join("",aws_eip.dmz_ip.*.ip) : aws_instance.dmz.public_ip}"]
 }
 
 resource "aws_route53_record" "api_dns" {
@@ -19,7 +19,7 @@ resource "aws_route53_record" "api_dns" {
   name = "api.${local.api_domain}"
   type = "A"
   ttl = "300"
-  records = ["${aws_eip.city_lb_ip.public_ip}"]
+  records = ["${terraform.workspace == "prod" ? join("", aws_eip.city_lb_ip.*.ip) : aws_instance.city_lb.public_ip}"]
 }
 
 resource "aws_route53_record" "lb_wildcard" {
@@ -27,5 +27,5 @@ resource "aws_route53_record" "lb_wildcard" {
   name = "*.${local.api_domain}"
   type = "A"
   ttl = "300"
-  records = ["${aws_eip.city_lb_ip.public_ip}"]
+  records = ["${terraform.workspace == "prod" ? join("", aws_eip.city_lb_ip.*.ip) : aws_instance.city_lb.public_ip}"]
 }

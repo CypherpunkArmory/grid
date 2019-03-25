@@ -465,6 +465,11 @@ resource "aws_iam_role_policy_attachment" "vault_city_host_policy_attach" {
   policy_arn = "${aws_iam_policy.city_host.arn}"
 }
 
+resource "aws_iam_role_policy_attachment" "lb_city_host_policy_attach" {
+  role = "${aws_iam_role.lb_host.name}"
+  policy_arn = "${aws_iam_policy.city_host.arn}"
+}
+
 resource "aws_iam_role_policy_attachment" "dmz_vault_policy_attach" {
   role = "${aws_iam_role.dmz_host.name}"
   policy_arn = "${aws_iam_policy.vault_policy.arn}"

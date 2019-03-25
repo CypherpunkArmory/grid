@@ -1,0 +1,29 @@
+---
+# import_tasks: start-local.yml
+- name: Make the output directory
+  delegate_to: localhost
+  become: no
+  vars:
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+  file:
+    path: "{{output_directory}}"
+    state: directory
+
+- name: Create a policy directory
+  file:
+    path: /root/policies
+    state: directory
+
+- import_tasks: unseal.yml
+- import_tasks: gather_auth_methods.yml
+- import_tasks: infra_secrets.yml
+- import_tasks: github.yml
+- import_tasks: aws.yml
+- import_tasks: nomad.yml
+- import_tasks: pki.yml
+
+- name: Clean up Policies Directory
+  file:
+    path: /root/policies
+    state: absent
+

@@ -15,8 +15,5 @@ write_files:
       gh:corbinlc
       gh:MatthewTighe
       gh:luongthomas
-  - path: /etc/openvpn/server.conf
-    content: |
-      ${openvpn_server}
 
 hostname: ${hostname}

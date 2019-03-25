@@ -1,5 +1,5 @@
 resource "aws_security_group" "city_servers" {
-  name        = "city"
+  name        = "city-${terraform.workspace}"
   vpc_id      = "${aws_vpc.city_vpc.id}"
   description = "Allow SSH / HTTP / HTTP(s) traffic to City"
 
@@ -11,7 +11,7 @@ resource "aws_security_group" "city_servers" {
 }
 
 resource "aws_security_group" "dmz_server" {
-  name        = "dmz"
+  name        = "dmz-${terraform.workspace}"
   vpc_id      = "${aws_vpc.city_vpc.id}"
   description = "Allow UDP OpenVPN traffic to DMZ"
 
@@ -63,7 +63,7 @@ resource "aws_security_group_rule" "subnet_allow_all" {
   from_port         = 0
   to_port           = 0
   protocol          = "-1"
-  cidr_blocks       = ["172.31.0.0/16"]
+  cidr_blocks       = ["172.31.0.0/16", "172.16.0.0/16"]
   security_group_id = "${aws_security_group.city_servers.id}"
 }
 

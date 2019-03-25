@@ -17,3 +17,6 @@ write_files:
       gh:luongthomas
 
 hostname: ${hostname}
+
+bootcmd:
+  - 'sed -i "s/bootstrap_expect.*/bootstrap_expect = ${city_hosts}/" /etc/consul.hcl'
