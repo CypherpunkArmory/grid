@@ -5,7 +5,7 @@ resource "aws_db_instance" "city_rds" {
   engine = "postgres"
   engine_version = "10.6"
   instance_class = "${ terraform.workspace == "prod" ? "db.t2.small" : "db.t2.micro" }"
-  availability_zone = "us-west-2a"
+  availability_zone = "us-west-2c"
   username = "postgres"
   password = "${var.rds_password}"
   db_subnet_group_name = "${aws_db_subnet_group.city_db.name}"
@@ -21,7 +21,6 @@ resource "aws_db_instance" "city_rds" {
     Environment = "${terraform.workspace}"
   }
 }
-
 
 resource "aws_db_subnet_group" "city_db" {
   name = "db-${terraform.workspace}"

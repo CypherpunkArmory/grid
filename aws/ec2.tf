@@ -83,10 +83,10 @@ resource "aws_instance" "city_host" {
 
     when = "destroy"
     inline = [
-      # "nomad node eligibility -disable -self",
-      # "nomad node drain -self",
-      # "sleep 15", # this should wait until the new servers are stable and a leader election can be performed when we leave
-      # "consul leave"
+      "nomad node eligibility -disable -self",
+      "nomad node drain -self",
+      "sleep 15", # this should wait until the new servers are stable and a leader election can be performed when we leave
+      "consul leave"
     ]
   }
 }
