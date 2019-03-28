@@ -12,3 +12,5 @@ tags
 Vagrantfile
 *.retry
 metadata.json
+*.py[cod]
+__pycache__/
