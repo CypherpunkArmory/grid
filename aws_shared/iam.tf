@@ -325,7 +325,9 @@ resource "aws_iam_policy" "datadog" {
 POLICY
 }
 
+
 # AWS ROLE
+
 
 resource "aws_iam_role" "datadog" {
   name                  = "DatadogAWSIntegrationRole"

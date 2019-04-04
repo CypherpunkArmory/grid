@@ -35,7 +35,25 @@ The domains are preset to
 2. API - <yourenvname>.orbtestenv.net
 
 
+
 ## Tagging Resources
 
 Your resources should be tagged liberally.  You're going to want to find them
 later.
+
+Everything that can be tagged with the environment name should be tagged with
+the environment name.
+
+Additionally, everything should be tagged with it's "District" - which is
+either "city" - meaning that it runs apps written by Userland or "sea" meaning
+it runs user workloads.
+
+Another common tag is "Usage" - which is generally either "app" or "infra"
+
+A Usage of "app" means that the resource supports application functions in city.
+A Usage of "infra" means that the resource supports infrastructure fuctions in
+either city or sea.
+
+An example of this distinction:  The redis cluster is tagged "app" because the
+_application_ requires it to work.  The DMZ machine is tagged "infra" because
+the _infrastructure_ requires it to work.

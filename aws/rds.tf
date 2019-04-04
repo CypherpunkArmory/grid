@@ -37,7 +37,7 @@ resource "aws_subnet" "city_backup_subnet" {
   vpc_id = "${aws_vpc.city_vpc.id}"
   cidr_block = "172.31.2.0/24"
   map_public_ip_on_launch = true
-  availability_zone = "us-west-2a"
+  availability_zone = "us-west-2c"
 
   tags {
     District = "city"

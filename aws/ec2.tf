@@ -55,9 +55,11 @@ resource "aws_instance" "city_host" {
   instance_type = "t2.micro"
   user_data = "${data.template_file.city_cloud_init.*.rendered[count.index]}"
   iam_instance_profile = "${local.city_host_profile}"
-  subnet_id = "${aws_subnet.city_vpc_subnet.id}"
+  subnet_id = "${aws_subnet.city_private_subnet.id}"
   monitoring = true
   vpc_security_group_ids = ["${aws_security_group.city_servers.id}"]
+  associate_public_ip_address = false
+
 
   lifecycle {
     create_before_destroy = 1
@@ -72,23 +74,6 @@ resource "aws_instance" "city_host" {
   }
 
   depends_on = ["aws_vpc.city_vpc", "aws_instance.dmz"]
-
-  provisioner "remote-exec" {
-    connection {
-      host = "${self.private_ip}"
-      bastion_host = "${aws_instance.dmz.public_ip}"
-      type = "ssh"
-      user = "alan"
-    }
-
-    when = "destroy"
-    inline = [
-      "nomad node eligibility -disable -self",
-      "nomad node drain -self",
-      "sleep 15", # this should wait until the new servers are stable and a leader election can be performed when we leave
-      "consul leave"
-    ]
-  }
 }
 
 data "template_file" "city_lb_cloud_init" {
@@ -121,19 +106,6 @@ resource "aws_instance" "city_lb" {
   }
 
   depends_on = ["aws_vpc.city_vpc", "aws_instance.dmz"]
-
-  provisioner "remote-exec" {
-    connection {
-      host = "${self.public_ip}"
-      type = "ssh"
-      user = "alan"
-    }
-
-    when             = "destroy"
-    inline           = [
-      "consul leave"
-    ]
-  }
 }
 
 data "template_file" "dmz_host_cloud_init" {
@@ -164,19 +136,6 @@ resource "aws_instance" "dmz" {
     Name     = "dmz${terraform.workspace != "prod" ? terraform.workspace : ""}"
     Role     = "vpn"
     Environment = "${terraform.workspace}"
-  }
-
-  provisioner "remote-exec" {
-    connection {
-      host = "${self.public_ip}"
-      type = "ssh"
-      user = "alan"
-    }
-
-    when             = "destroy"
-    inline           = [
-      "consul leave"
-    ]
   }
 
   depends_on = ["aws_vpc.city_vpc", "aws_dynamodb_table.vault-secrets"]
