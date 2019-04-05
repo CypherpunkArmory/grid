@@ -23,3 +23,7 @@ variable "name" {
   description = "Users Real Name"
 }
 
+variable "email" {
+  description = "User's non userland email address"
+  default = ""
+}

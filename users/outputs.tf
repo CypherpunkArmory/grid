@@ -5,5 +5,6 @@ output "github_users" {
     "${module.andrew.github_name}",
     "${module.matthew.github_name}",
     "${module.thomas.github_name}"
+    "${module.brandon.github_name}"
   ]
 }

@@ -32,7 +32,7 @@ resource "github_team_membership" "userland" {
 }
 
 resource "datadog_user" "user" {
-  email = "${local.username}"
+  email = "${var.email == "" ? local.username : var.email}"
   handle = "${local.username}"
   name = "${var.name}"
   is_admin = "${var.github_role == "admin" ? true : false}"

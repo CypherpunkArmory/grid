@@ -9,7 +9,7 @@ the same API at a different endpoint and uses it in calls to a different API.)
 In order to accomplish this, Terraform maintains a consistent view of the
 infrastructure in a file called "The State" - our Terraform organization
 splits this file into several independently managed pieces based on their
-velocity.
+change velocity.
 
 1. Github
 2. AWS Shared (IAM, Network, DNS, Etc)
@@ -19,7 +19,7 @@ velocity.
 In order to modify these files, you need to either CD into the respective
 directory or use the `./tf` helper script.
 
-`./tf aws_shared <your terraform commands>`
+`./tf aws <your terraform commands>`
 
 A Terraform tutorial is outside the scope of this README, but here are some
 tips for making changes.
