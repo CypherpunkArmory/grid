@@ -4,7 +4,8 @@ output "github_users" {
     "${module.corbin.github_name}",
     "${module.andrew.github_name}",
     "${module.matthew.github_name}",
-    "${module.thomas.github_name}"
-    "${module.brandon.github_name}"
+    "${module.thomas.github_name}",
+    "${module.brandon.github_name}",
+    "${module.chris.github_name}"
   ]
 }

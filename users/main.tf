@@ -28,7 +28,7 @@ data "terraform_remote_state" "github" {
 # Prater
 module "prater" {
   source = "./user"
-  username = "prater@userland.tech"
+  username = "prater"
   keybase_name = "stephenprater"
   github_name = "stephenprater"
   github_role = "admin"
@@ -40,7 +40,7 @@ module "prater" {
 
 module "corbin" {
   source = "./user"
-  username = "corbin@userland.tech"
+  username = "corbin"
   keybase_name = "corbinlc"
   github_name = "corbinlc"
   github_role = "admin"
@@ -52,7 +52,7 @@ module "corbin" {
 
 module "andrew" {
   source = "./user"
-  username = "andrew@userland.tech"
+  username = "andrew"
   keybase_name = "andrewscibek"
   github_name = "AndrewScibek"
   github_role = "admin"
@@ -64,7 +64,7 @@ module "andrew" {
 
 module "matthew" {
   source = "./user"
-  username = "matthew@userland.tech"
+  username = "matthew"
   keybase_name = "matt_tighe"
   github_name = "MatthewTighe"
   github_role = "admin"
@@ -76,13 +76,25 @@ module "matthew" {
 
 module "thomas" {
   source = "./user"
-  username = "thomas@userland.tech"
+  username = "thomas"
   keybase_name = "lithogen"
   github_name = "luongthomas"
   github_role = "admin"
   name = "Thomas Luong"
   userland_team_id = "${data.terraform_remote_state.github.userland_team_id}"
 }
+
+module "chris" {
+  source = "./user"
+  username = "chris"
+  email = "schafer@userland.tech"
+  keybase_name = "xophere"
+  github_name = "xophere"
+  github_role = "admin"
+  name = "Chris Schafer"
+  userland_team_id = "${data.terraform_remote_state.github.userland_team_id}"
+}
+
 
 # Brandon Presley (Contractor)
 
