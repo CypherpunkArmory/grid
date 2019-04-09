@@ -86,8 +86,7 @@ module "thomas" {
 
 module "chris" {
   source = "./user"
-  username = "chris"
-  email = "schafer@userland.tech"
+  username = "schafer"
   keybase_name = "xophere"
   github_name = "xophere"
   github_role = "admin"
@@ -127,6 +126,7 @@ resource "aws_iam_group_membership" "developers" {
     "${module.andrew.username}",
     "${module.matthew.username}",
     "${module.thomas.username}",
-    "${module.brandon.username}"
+    "${module.brandon.username}",
+    "${module.chris.username}"
   ]
 }
