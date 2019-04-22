@@ -57,3 +57,15 @@ either city or sea.
 An example of this distinction:  The redis cluster is tagged "app" because the
 _application_ requires it to work.  The DMZ machine is tagged "infra" because
 the _infrastructure_ requires it to work.
+
+
+https://github.com/radekg/terraform-provisioner-ansible
+Note rename and chmod +x
+
+Also note push button configs must be less then 20 charecters total including the preposition "holepunch-".
+
+Your public key must be in the cloudinit config files for dmz at least
+
+You need the changes in push-button-fixes for elasticcashe subnet naming
+
+

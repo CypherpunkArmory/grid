@@ -106,6 +106,45 @@ resource "aws_instance" "city_lb" {
   }
 
   depends_on = ["aws_vpc.city_vpc", "aws_instance.dmz"]
+
+  provisioner "ansible" {
+    when = "create"
+
+    connection {
+      host = "${self.public_ip}"
+      user = "alan"
+      type = "ssh"
+    }
+
+    ansible_ssh_settings {
+      insecure_no_strict_host_key_checking = true
+    }
+
+    plays {
+      playbook = {
+        file_path = "${path.module}/city_lb/city_lb.yml"
+        roles_path = ["${path.module}/city_lb/roles"]
+      }
+
+      hosts = ["${self.public_ip}"]
+      vault_id = ["${var.output_directory}/ansible-vault-password.txt"]
+
+      extra_vars = {
+        env               = "${terraform.workspace}"
+        dmz_private_ip    = "${aws_instance.dmz.private_ip}"
+        cluster_size      = "${var.city_hosts}"
+        vault_file        = "${var.output_directory}/ansible-vault.yml"
+        output_directory  = "${var.output_directory}/${terraform.workspace}"
+        github_org        = "${var.github_org}"
+        dev_team          = "userland"
+        aws_account_id    = "${data.aws_caller_identity.current.account_id}"
+        vpc_active_subnet = "172.31.0.0"
+        vpc_vpn_subnet    = "172.16.0.0"
+        vpn_domain        = "${terraform.workspace == "prod" ? "hole.ly" : join(".", list(terraform.workspace, "testinghole.com"))}"
+      }
+    }
+  }
+
 }
 
 data "template_file" "dmz_host_cloud_init" {

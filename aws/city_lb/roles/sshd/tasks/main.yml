@@ -1,0 +1,9 @@
+---
+- set_fact:
+        vault_token: "{{ lookup('file',vars['output_directory'] + '/vault_recovery') | regex_search('Initial Root Token: (.*)','\\1') | first }}"
+- import_tasks: gen-ssh-host-keys-install.yml
+
+- name: Restart sshd
+  service:
+    name: ssh
+    state: restarted
