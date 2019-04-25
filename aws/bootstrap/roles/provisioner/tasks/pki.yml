@@ -2,7 +2,7 @@
 - name: Enable PKI for OpenVPN
   environment:
     VAULT_TOKEN: "{{ vault_token }}"
-  when: "vars['vpn_domain'] + '/' not in secrets_list"
+  when: "vars['vpn_domain'] + '/' not in backend_list"
   block:
     - name: Enable PKI
       command: "vault secrets enable -path {{vpn_domain}} -description='PKI for VPN' -max-lease-ttl=87600h pki"

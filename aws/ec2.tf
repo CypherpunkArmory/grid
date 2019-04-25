@@ -132,19 +132,11 @@ resource "aws_instance" "city_lb" {
       extra_vars = {
         env               = "${terraform.workspace}"
         dmz_private_ip    = "${aws_instance.dmz.private_ip}"
-        cluster_size      = "${var.city_hosts}"
         vault_file        = "${var.output_directory}/ansible-vault.yml"
         output_directory  = "${var.output_directory}/${terraform.workspace}"
-        github_org        = "${var.github_org}"
-        dev_team          = "userland"
-        aws_account_id    = "${data.aws_caller_identity.current.account_id}"
-        vpc_active_subnet = "172.31.0.0"
-        vpc_vpn_subnet    = "172.16.0.0"
-        vpn_domain        = "${terraform.workspace == "prod" ? "hole.ly" : join(".", list(terraform.workspace, "testinghole.com"))}"
       }
     }
   }
-
 }
 
 data "template_file" "dmz_host_cloud_init" {

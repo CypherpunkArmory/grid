@@ -16,9 +16,9 @@
 
 - import_tasks: unseal.yml
 - import_tasks: gather_auth_methods.yml
+- import_tasks: aws.yml
 - import_tasks: infra_secrets.yml
 - import_tasks: github.yml
-- import_tasks: aws.yml
 - import_tasks: nomad.yml
 - import_tasks: pki.yml
 

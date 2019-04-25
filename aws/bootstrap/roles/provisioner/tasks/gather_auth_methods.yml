@@ -17,7 +17,19 @@
         policy_list: "{{ policy_list_raw.stdout | from_json }}"
 
     - command: 'vault secrets list -format json'
-      register: secrets_list_raw
+      register: backend_list_raw
 
     - set_fact:
-        secrets_list: "{{ secrets_list_raw.stdout | from_json | json_query('keys(@)') }}"
+        backend_list: "{{ backend_list_raw.stdout | from_json | json_query('keys(@)') }}"
+
+    - name: Create Default KV Area
+      when: "'secret/' not in backend_list"
+      command: "vault secrets enable -version=1 -path=secret kv"
+
+    - name: Get list of Secret KV Subkeys
+      command: 'vault kv list -format=json secret'
+      register: secrets_list_raw
+      ignore_errors: true
+
+    - set_fact:
+        secrets_list: "{{ secret_list_raw.stdout | from_json | json_query('keys(@)') if secret_list_raw is defined else [] }}"

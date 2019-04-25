@@ -1,5 +1,5 @@
 resource "aws_elasticache_cluster" "holepunch-redis" {
-  cluster_id = "holepunch-${terraform.workspace}"
+  cluster_id = "holepunch-${substr(terraform.workspace, 0, min(9, length(terraform.workspace)))}"
   engine = "redis"
   node_type = "cache.t2.micro"
   num_cache_nodes = 1
@@ -7,6 +7,7 @@ resource "aws_elasticache_cluster" "holepunch-redis" {
   engine_version = "4.0.10"
   subnet_group_name = "${aws_elasticache_subnet_group.holepunch-redis-subnet-group.name}"
   apply_immediately = true
+
   port = 6379
 
   tags {

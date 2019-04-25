@@ -2,7 +2,7 @@
 - name: Have I already generated the ssh host keys?
   environment:
     VAULT_TOKEN: "{{ vault_token }}"
-  command: vault kv get -field=key secret/ssh_host_rsa_key
+  command: vault kv get -field=key secret/sshkeys/ssh_host_rsa_key
   ignore_errors: True
   register: sshd_keys_created
 
@@ -11,54 +11,57 @@
     VAULT_TOKEN: "{{ vault_token }}"
   when: sshd_keys_created is failed
   block:
+    - name: Remove default DSA keys
+      file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+      - /etc/ssh/ssh_host_dsa_key
+      - /etc/ssh/ssh_host_dsa_key.pub
     - name: Generate and install RSA 4096 key pair
       shell: |
-        yes y | ssh-keygen -q -o -b 4096 -t rsa -C UserLAnd -N '' -f ssh_host_rsa_key >/dev/null
-        vault kv put secret/ssh_host_rsa_key key=@ssh_host_rsa_key
-        vault kv put secret/ssh_host_rsa_key_pub key=@ssh_host_rsa_key.pub
-        mv ssh_host_rsa_key /etc/ssh/ssh_host_rsa_key
-        mv ssh_host_rsa_key.pub /etc/ssh/ssh_host_rsa_key.pub 
+        yes y | ssh-keygen -q -o -b 4096 -t rsa -C UserLAnd -N '' -f /etc/ssh/ssh_host_rsa_key >/dev/null
+        vault kv put secret/sshkeys/ssh_host_rsa_key key=@/etc/ssh/ssh_host_rsa_key
+        vault kv put secret/sshkeys/ssh_host_rsa_key_pub key=@/etc/ssh/ssh_host_rsa_key.pub
+  
     - name: Generate and install ed25519 key pair
       shell: |
-        yes y | ssh-keygen -q -o -t ed25519 -C UserLAnd -N '' -f ssh_host_ed25519_key >/dev/null
-        vault kv put secret/ssh_host_ed25519_key key=@ssh_host_ed25519_key
-        vault kv put secret/ssh_host_ed25519_key_pub key=@ssh_host_ed25519_key.pub
-        mv ssh_host_ed25519_key /etc/ssh/ssh_host_ed25519_key
-        mv ssh_host_ed25519_key.pub /etc/ssh/ssh_host_ed25519_key.pub
-
+        yes y | ssh-keygen -q -o -t ed25519 -C UserLAnd -N '' -f /etc/ssh/ssh_host_ed25519_key >/dev/null
+        vault kv put secret/sshkeys/ssh_host_ed25519_key key=@/etc/ssh/ssh_host_ed25519_key
+        vault kv put secret/sshkeys/ssh_host_ed25519_key_pub key=@/etc/ssh/ssh_host_ed25519_key.pub
+  
     - name: Generate and install ecdsa key pair
       shell: |
-        yes y | ssh-keygen -q -o -b 521 -t ecdsa -C UserLAnd -N '' -f ssh_host_ecdsa_key >/dev/null
-        vault kv put secret/ssh_host_ecdsa_key key=@ssh_host_ecdsa_key
-        vault kv put secret/ssh_host_ecdsa_key_pub key=@ssh_host_ecdsa_key.pub
-        mv ssh_host_ecdsa_key /etc/ssh/ssh_host_ecdsa_key
-        mv ssh_host_ecdsa_key.pub /etc/ssh/ssh_host_ecdsa_key.pub  
-
+        yes y | ssh-keygen -q -o -b 521 -t ecdsa -C UserLAnd -N '' -f /etc/ssh/ssh_host_ecdsa_key >/dev/null
+        vault kv put secret/sshkeys/ssh_host_ecdsa_key key=@/etc/ssh/ssh_host_ecdsa_key
+        vault kv put secret/sshkeys/ssh_host_ecdsa_key_pub key=@/etc/ssh/ssh_host_ecdsa_key.pub
+  
 
 - name: Install ssh host keys
   environment:
     VAULT_TOKEN: "{{ vault_token }}"
   when: sshd_keys_created is success
   block:
+    - name: Remove default DSA keys
+      file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+      - /etc/ssh/ssh_host_dsa_key
+      - /etc/ssh/ssh_host_dsa_key.pub
     - name: Install RSA 4096 key pair
       shell: |
-        vault kv get -feild=key secret/ssh_host_rsa_key > ssh_host_rsa_key 
-        vault kv get -feild=key secret/ssh_host_rsa_key_pub > ssh_host_rsa_key.pub
-        mv ssh_host_rsa_key /etc/ssh/ssh_host_rsa_key
-        mv ssh_host_rsa_key.pub /etc/ssh/ssh_host_rsa_key.pub 
+        vault kv get -field=key secret/sshkeys/ssh_host_rsa_key > /etc/ssh/ssh_host_rsa_key 
+        vault kv get -field=key secret/sshkeys/ssh_host_rsa_key_pub > /etc/ssh/ssh_host_rsa_key.pub
     - name: Install ed25519 key pair
       shell: |
-        vault get -feild=key secret/ssh_host_rsa_key >ssh_host_ed25519_key
-        vault get -feild=key secret/ssh_host_rsa_key_pub >ssh_host_ed25519_key.pub
-        mv ssh_host_ed25519_key /etc/ssh/ssh_host_ed25519_key
-        mv ssh_host_ed25519_key.pub /etc/ssh/ssh_host_ed25519_key.pub
-
+        vault kv get -field=key secret/sshkeys/ssh_host_ed25519_key >/etc/ssh/ssh_host_ed25519_key
+        vault kv get -field=key secret/sshkeys/ssh_host_ed25519_key_pub >/etc/ssh/ssh_host_ed25519_key.pub
+  
     - name: Install ecdsa key pair
       shell: |
-        vault get -feild=key secret/ssh_host_ecdsa_key >ssh_host_ecdsa_key
-        vault get -feild=key secret/ssh_host_ecdsa_key_pub >ssh_host_ecdsa_key.pub
-        mv ssh_host_ecdsa_key /etc/ssh/ssh_host_ecdsa_key
-        mv ssh_host_ecdsa_key.pub /etc/ssh/ssh_host_ecdsa_key.pub
-
+        vault kv get -field=key secret/sshkeys/ssh_host_ecdsa_key >/etc/ssh/ssh_host_ecdsa_key
+        vault kv get -field=key secret/sshkeys/ssh_host_ecdsa_key_pub >/etc/ssh/ssh_host_ecdsa_key.pub
+  
       
         

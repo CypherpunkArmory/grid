@@ -48,7 +48,7 @@
          vault write auth/aws/role/lb-host auth_type=iam bound_iam_principal_arn=arn:aws:iam::{{aws_account_id}}:role/lb_host policies=lb-host-policy max_ttl=500h
 
 - name: Enable AWS Secrets
-  when: "'aws/' not in secrets_list"
+  when: "'aws/' not in backend_list"
   environment:
     VAULT_TOKEN: "{{ vault_token }}"
   block:
