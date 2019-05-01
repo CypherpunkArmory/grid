@@ -1,17 +1,26 @@
+data "aws_db_snapshot" "latest_prod_snapshot" {
+  most_recent = true
+  db_instance_identifier = "city-db-prod"
+}
+
+locals {
+  db_identifier = "city-db-${terraform.workspace}"
+}
+
 resource "aws_db_instance" "city_rds" {
-  allocated_storage = 10
-  identifier = "city-db-${terraform.workspace}"
+  identifier = "${local.db_identifier}"
   storage_type = "gp2"
-  engine = "postgres"
   engine_version = "10.6"
   instance_class = "${ terraform.workspace == "prod" ? "db.t2.small" : "db.t2.micro" }"
   availability_zone = "us-west-2c"
-  username = "postgres"
-  password = "${var.rds_password}"
   db_subnet_group_name = "${aws_db_subnet_group.city_db.name}"
   multi_az = false
-  skip_final_snapshot = true
   publicly_accessible = true
+  backup_retention_period = "${terraform.workspace == "prod" ? 14 : 0}"
+  skip_final_snapshot = "${ terraform.workspace == "prod" ? false : true }"
+  final_snapshot_identifier = "${local.db_identifier}-${replace(timestamp(), ":", "-")}"
+  copy_tags_to_snapshot = "${ terraform.workspace == "prod" ? true : false }"
+  snapshot_identifier = "${ terraform.workspace == "prod" ? data.aws_db_snapshot.latest_prod_snapshot.id : "prod-prerelease-snap" }"
 
   tags {
     District = "city"

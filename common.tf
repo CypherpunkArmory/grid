@@ -2,7 +2,6 @@ variable "github_token" {}
 variable "github_org" {}
 variable "datadog_app_key" {}
 variable "datadog_api_key" {}
-variable "rds_password" {}
 variable "aws_region" {}
 variable "output_directory" {}
 

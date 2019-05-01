@@ -10,6 +10,10 @@ resource "aws_dynamodb_table" "vault-secrets" {
   hash_key       = "Path"
   range_key      = "Key"
 
+  point_in_time_recovery {
+    enabled = "${terraform.workspace == "prod" ? true : false}"
+  }
+
   attribute {
     name = "Path"
     type = "S"
