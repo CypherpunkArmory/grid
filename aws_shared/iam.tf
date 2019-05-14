@@ -508,6 +508,11 @@ resource "aws_iam_instance_profile" "lb_host_profile" {
   role = "${aws_iam_role.lb_host.name}"
 }
 
+resource "aws_iam_role_policy_attachment" "lb_city_host_policy_attach" {
+  role = "${aws_iam_role.lb_host.name}"
+  policy_arn = "${aws_iam_policy.city_host.arn}"
+}
+
 
 # Create AWS policy to allow certbot container jobs to update route53
 resource "aws_iam_policy" "certbotpolicy" {

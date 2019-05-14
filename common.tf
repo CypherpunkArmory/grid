@@ -4,6 +4,10 @@ variable "datadog_app_key" {}
 variable "datadog_api_key" {}
 variable "aws_region" {}
 variable "output_directory" {}
+variable "rollbar_token" {}
+variable "min_calver" {}
+variable "jwt_secret_key" {}
+variable "rds_password" {}
 variable "lets_encrypt_email" {}
 
 provider "aws" {
