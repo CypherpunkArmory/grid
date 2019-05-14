@@ -7,6 +7,9 @@ resource "aws_elasticache_cluster" "holepunch-redis" {
   engine_version = "4.0.10"
   subnet_group_name = "${aws_elasticache_subnet_group.holepunch-redis-subnet-group.name}"
   apply_immediately = true
+  security_group_ids = [
+    "${ aws_security_group.city_servers.id }"
+  ]
 
   port = 6379
 
@@ -21,5 +24,8 @@ resource "aws_elasticache_cluster" "holepunch-redis" {
 
 resource "aws_elasticache_subnet_group" "holepunch-redis-subnet-group" {
   name = "elasticache-subnet-group-${terraform.workspace}"
-  subnet_ids = ["${aws_subnet.city_private_subnet.id}"]
+  subnet_ids = [
+    "${aws_subnet.city_vpc_subnet.id}",
+    "${aws_subnet.city_private_subnet.id}"
+  ]
 }

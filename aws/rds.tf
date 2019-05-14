@@ -21,6 +21,9 @@ resource "aws_db_instance" "city_rds" {
   final_snapshot_identifier = "${local.db_identifier}-${replace(timestamp(), ":", "-")}"
   copy_tags_to_snapshot = "${ terraform.workspace == "prod" ? true : false }"
   snapshot_identifier = "${ terraform.workspace == "prod" ? data.aws_db_snapshot.latest_prod_snapshot.id : "prod-prerelease-snap" }"
+  vpc_security_group_ids = [
+    "${ aws_security_group.city_servers.id }",
+  ]
 
   tags {
     District = "city"
@@ -33,7 +36,11 @@ resource "aws_db_instance" "city_rds" {
 
 resource "aws_db_subnet_group" "city_db" {
   name = "db-${terraform.workspace}"
-  subnet_ids = ["${aws_subnet.city_vpc_subnet.id}", "${aws_subnet.city_backup_subnet.id}"]
+  subnet_ids = [
+    "${aws_subnet.city_vpc_subnet.id}",
+    "${aws_subnet.city_backup_subnet.id}",
+    "${aws_subnet.city_private_subnet.id}"
+  ]
 
   tags {
     District = "city"
