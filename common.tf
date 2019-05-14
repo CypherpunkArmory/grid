@@ -4,6 +4,7 @@ variable "datadog_app_key" {}
 variable "datadog_api_key" {}
 variable "aws_region" {}
 variable "output_directory" {}
+variable "lets_encrypt_email" {}
 
 provider "aws" {
   version        = "~> 2.0"
@@ -14,9 +15,15 @@ provider "local" {
   version  = "~> 1.1"
 }
 
+provider "acme" {
+  server_url = "https://acme-v02.api.letsencrypt.org/directory"
+}
+
 provider "null" {
   version  = "~> 2.1"
 }
+
+provider "tls" { }
 
 provider "github" {
   version = "~> 1.2"

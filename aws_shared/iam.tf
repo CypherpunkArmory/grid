@@ -423,6 +423,58 @@ resource "aws_iam_role" "dmz_host" {
 ASSUME
 }
 
+resource "aws_iam_instance_profile" "dmz_host_profile" {
+  name = "dmz_host_profile"
+  role = "${aws_iam_role.dmz_host.name}"
+}
+
+# This looks like a duplicate call with the one below it
+resource "aws_iam_role_policy_attachment" "vault_city_host_policy_attach" {
+  role = "${aws_iam_role.dmz_host.name}"
+  policy_arn = "${aws_iam_policy.city_host.arn}"
+}
+
+#  Vault on DMZ host related
+
+#     Used for allocating tokens for nodes to find the other nodes and for tokens
+#     for automated services that need to manage AWS.  Certbot etc.
+resource "aws_iam_policy" "vault_policy" {
+  description = "Role policy for Vault AWS Secret Issuer"
+  name = "vault"
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Id": "vault-aws secret issuer policy",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "iam:AttachUserPolicy",
+        "iam:CreateAccessKey",
+        "iam:CreateUser",
+        "iam:DeleteAccessKey",
+        "iam:DeleteUser",
+        "iam:DeleteUserPolicy",
+        "iam:DetachUserPolicy",
+        "iam:ListAccessKeys",
+        "iam:ListAttachedUserPolicies",
+        "iam:ListGroupsForUser",
+        "iam:ListUserPolicies",
+        "iam:PutUserPolicy",
+        "iam:RemoveUserFromGroup"
+      ],
+      "Resource": [
+        "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/vault-*"
+      ]
+    }
+  ]
+}
+POLICY
+}
+
+
+
+## LB
 resource "aws_iam_role" "lb_host" {
   name               = "lb_host"
   description        = "IAM Role for LB Host machines"
@@ -457,9 +509,37 @@ resource "aws_iam_instance_profile" "lb_host_profile" {
 }
 
 
-resource "aws_iam_role_policy_attachment" "city_host_policy_attach" {
-  role = "${aws_iam_role.city_host.name}"
-  policy_arn = "${aws_iam_policy.city_host.arn}"
+# Create AWS policy to allow certbot container jobs to update route53
+resource "aws_iam_policy" "certbotpolicy" {
+  description = "Permission Policy for Certbot Auto"
+  name = "certbot"
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Id": "certbot-dns-route53 sample policy",
+  "Statement": [
+      {
+          "Effect": "Allow",
+          "Action": [
+              "route53:ListHostedZones",
+              "route53:GetChange"
+          ],
+          "Resource": [
+              "*"
+          ]
+      },
+      {
+          "Effect" : "Allow",
+          "Action" : [
+              "route53:ChangeResourceRecordSets"
+          ],
+          "Resource" : [
+              "arn:aws:route53:::hostedzone/*"
+          ]
+      }
+  ]
+}
+POLICY
 }
 
 resource "aws_iam_role_policy_attachment" "vault_city_host_policy_attach" {
@@ -467,9 +547,21 @@ resource "aws_iam_role_policy_attachment" "vault_city_host_policy_attach" {
   policy_arn = "${aws_iam_policy.city_host.arn}"
 }
 
-resource "aws_iam_role_policy_attachment" "lb_city_host_policy_attach" {
-  role = "${aws_iam_role.lb_host.name}"
-  policy_arn = "${aws_iam_policy.city_host.arn}"
+resource "aws_iam_role" "certbot" {
+  name               = "certbot"
+  description        = "IAM Role for certbot container"
+  assume_role_policy = <<ASSUME
+{
+   "Version": "2012-10-17",
+   "Statement": [
+      {
+         "Effect": "Allow",
+         "Principal": { "Service": "ec2.amazonaws.com" },
+         "Action": "sts:AssumeRole"
+      }
+   ]
+}
+ASSUME
 }
 
 resource "aws_iam_role_policy_attachment" "dmz_vault_policy_attach" {
@@ -477,9 +569,9 @@ resource "aws_iam_role_policy_attachment" "dmz_vault_policy_attach" {
   policy_arn = "${aws_iam_policy.vault_policy.arn}"
 }
 
-resource "aws_iam_user_policy_attachment" "certbot_certbot_policy_attach" {
-  user = "${aws_iam_user.certbot.name}"
-  policy_arn = "${aws_iam_policy.certbot.arn}"
+resource "aws_iam_role_policy_attachment" "certbot_policy_attach" {
+  role  = "${aws_iam_role.certbot.name}"
+  policy_arn = "${aws_iam_policy.certbotpolicy.arn}"
 }
 
 

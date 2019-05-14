@@ -18,6 +18,18 @@ output "lb_host_profile_name" {
   value = "${aws_iam_instance_profile.lb_host_profile.name}"
 }
 
+output "emailer_password" {
+  value = "${aws_iam_access_key.emailer_key.ses_smtp_password}"
+}
+
+output "emailer_login" {
+  value = "${aws_iam_access_key.emailer_key.id}"
+}
+
+output "acme_registration_private_key" {
+  value = "${tls_private_key.pushbutton.private_key_pem}"
+}
+
 output "hole_ly_zone" {
   value = "${aws_route53_zone.hole_ly.zone_id}"
 }
