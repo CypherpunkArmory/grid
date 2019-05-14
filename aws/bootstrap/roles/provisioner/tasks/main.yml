@@ -1,5 +1,4 @@
 ---
-# import_tasks: start-local.yml
 - name: Make the output directory
   delegate_to: localhost
   become: no
@@ -26,4 +25,3 @@
   file:
     path: /root/policies
     state: absent
-

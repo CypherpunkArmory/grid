@@ -14,3 +14,4 @@ Vagrantfile
 metadata.json
 *.py[cod]
 __pycache__/
+.mypy_cache/

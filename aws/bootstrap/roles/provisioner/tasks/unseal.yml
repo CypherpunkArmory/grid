@@ -16,7 +16,7 @@
     - name: Wait for restart
       wait_for:
         port: 8200
-        delay: 2
+        delay: 5
 
     - name: Register the Vault Initialization Status
       command: vault status -format=json
