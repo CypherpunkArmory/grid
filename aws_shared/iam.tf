@@ -141,42 +141,6 @@ resource "aws_iam_policy" "certbot" {
 POLICY
 }
 
-resource "aws_iam_policy" "vault_policy" {
-  description = "Role policy for Vault AWS Secret Issuer"
-  name = "vault"
-  policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Id": "vault-aws secret issuer policy",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "iam:AttachUserPolicy",
-        "iam:CreateAccessKey",
-        "iam:CreateUser",
-        "iam:DeleteAccessKey",
-        "iam:DeleteUser",
-        "iam:DeleteUserPolicy",
-        "iam:DetachUserPolicy",
-        "iam:ListAccessKeys",
-        "iam:ListAttachedUserPolicies",
-        "iam:ListGroupsForUser",
-        "iam:ListUserPolicies",
-        "iam:PutUserPolicy",
-        "iam:RemoveUserFromGroup"
-      ],
-      "Resource": [
-        "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/vault-*"
-      ]
-    }
-  ]
-}
-POLICY
-}
-
-
-
 resource "aws_iam_policy" "vmimport" {
   description = "Role policy for VMIE Amazon Service."
   name        = "vmimport"
@@ -498,11 +462,6 @@ resource "aws_iam_instance_profile" "city_host_profile" {
   role = "${aws_iam_role.city_host.name}"
 }
 
-resource "aws_iam_instance_profile" "dmz_host_profile" {
-  name = "dmz_host_profile"
-  role = "${aws_iam_role.dmz_host.name}"
-}
-
 resource "aws_iam_instance_profile" "lb_host_profile" {
   name = "lb_host_profile"
   role = "${aws_iam_role.lb_host.name}"
@@ -547,7 +506,7 @@ resource "aws_iam_policy" "certbotpolicy" {
 POLICY
 }
 
-resource "aws_iam_role_policy_attachment" "vault_city_host_policy_attach" {
+resource "aws_iam_role_policy_attachment" "vault_dmz_role_policy_attach" {
   role = "${aws_iam_role.dmz_host.name}"
   policy_arn = "${aws_iam_policy.city_host.arn}"
 }

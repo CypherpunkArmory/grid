@@ -92,9 +92,6 @@ resource "acme_certificate" "holepunchio_certificate" {
   count = "${terraform.workspace == "prod" ? 1 : 0}"
   account_key_pem = "${local.account_key_pem}"
   common_name = "api.holepunch.io"
-  subject_alternative_names = [
-    "api.holepunch.io"
-  ]
 
   dns_challenge {
     provider = "route53"
@@ -115,7 +112,7 @@ EOH
 
 resource vault_generic_secret "prod_domain_certs" {
   count = "${ terraform.workspace == "prod" ? 1 : 0 }"
-  path = "fabio/certs/api.${local.api_domain}"
+  path = "secret/fabio/certs/api.${local.api_domain}"
   data_json = <<EOH
 {
   "cert": ${jsonencode(acme_certificate.holepunchio_certificate.certificate_pem)},
