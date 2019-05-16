@@ -161,6 +161,7 @@ RQ_REDIS_URL={{.Data.RQ_REDIS_URL}}
 RQ_DASHBOARD_REDIS_URL={{.Data.RQ_REDIS_URL}}
 MIN_CALVER={{.Data.MIN_CALVER}}
 BASE_SERVICE_URL=${base_domain}
+CONFIRM_URL=https://${base_domain}/account/confirm/{0}
 {{end}}
 EOH
         destination = "/secrets/production"
