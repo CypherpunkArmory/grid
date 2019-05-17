@@ -27,6 +27,16 @@
         src: templates/client.j2.conf
         dest: /tmp/client.conf
 
+    - name: Creates directory
+      file:
+        path: /tmp/linuxclient
+        state: directory
+
+    - name: Interpolate templates
+      template:
+        src: templates/linuxclient.j2.conf
+        dest: /tmp/linuxclient/client.conf
+
     - name: Generate Server Config
       command: "vault-openvpn server vpn.{{vpn_domain | regex_replace('_', '.')}} --auto-revoke --pki-mountpoint {{vpn_domain}} --ovpn-key secret/ovpn --template-path /tmp/"
       register: openvpn_server
@@ -34,6 +44,10 @@
     - name: Generate Client Config
       command: "vault-openvpn client dev.{{vpn_domain | regex_replace('_', '.')}} --auto-revoke --pki-mountpoint {{vpn_domain}} --ovpn-key secret/ovpn --template-path /tmp/"
       register: openvpn_client
+
+    - name: Generate Linux Client Config
+      command: "vault-openvpn client dev.{{vpn_domain | regex_replace('_', '.')}} --auto-revoke --pki-mountpoint {{vpn_domain}} --ovpn-key secret/ovpn --template-path /tmp/linuxclient/"
+      register: openvpn_linuxclient
 
     - name: Write the Server Config to to Server
       copy:
@@ -57,6 +71,15 @@
       copy:
         content: "{{openvpn_client.stdout}}"
         dest: "{{ output_directory }}/openvpn_client_{{env}}.ovpn"
+
+    - name: Write the Linux Client Config to KBFS
+      connection: local
+      become: no
+      vars:
+        ansible_python_interpreter: "{{ ansible_playbook_python }}"
+      copy:
+        content: "{{openvpn_linuxclient.stdout}}"
+        dest: "{{ output_directory }}/openvpn_linuxclient_{{env}}.ovpn"
 
 # When the ovpn has already been configured, we need to copy the generated VPN
 # template to the server so that we don't fill the vault up with revoked
