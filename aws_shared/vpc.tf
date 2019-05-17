@@ -22,7 +22,37 @@ resource "aws_subnet" "build_vpc_subnet" {
   tags {
     District = "waste"
     Usage = "infra"
+  }
+}
+
+resource "aws_internet_gateway" "gw" {
+  vpc_id = "${aws_vpc.build_vpc.id}"
+
+  tags {
+    District = "waste"
+    Usage = "infra"
     Environment = "${terraform.workspace}"
   }
 }
 
+resource "aws_route_table" "build_route_table" {
+  vpc_id = "${aws_vpc.build_vpc.id}"
+
+  tags = {
+    Name = "build_public"
+    District = "waste"
+    Usage = "infra"
+    Environment = "${terraform.workspace}"
+  }
+}
+
+resource "aws_route" "default_route" {
+  route_table_id = "${aws_route_table.build_route_table.id}"
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id = "${aws_internet_gateway.gw.id}"
+}
+
+resource "aws_main_route_table_association" "build_main_route" {
+  vpc_id         = "${aws_vpc.build_vpc.id}"
+  route_table_id = "${aws_route_table.build_route_table.id}"
+}
