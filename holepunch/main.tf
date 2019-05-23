@@ -71,6 +71,7 @@ resource vault_generic_secret "holepunch_secrets" {
   "JWT_SECRET_KEY": "${random_id.jwt_secret_key.hex }" ,
   "MAIL_USERNAME": "${data.terraform_remote_state.aws_shared.emailer_login}",
   "MAIL_PASSWORD": "${data.terraform_remote_state.aws_shared.emailer_password}",
+  "ROLLBAR_ENV": "${terraform.workspace}",
   "ROLLBAR_TOKEN": "${var.rollbar_token}",
   "RQ_REDIS_URL": "${data.terraform_remote_state.aws.holepunch_redis_endpoint}",
   "MIN_CALVER": "${var.min_calver}"
