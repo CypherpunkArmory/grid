@@ -18,7 +18,7 @@ resource "aws_db_instance" "city_rds" {
   publicly_accessible = true
   backup_retention_period = "${terraform.workspace == "prod" ? 14 : 0}"
   skip_final_snapshot = "${ terraform.workspace == "prod" ? false : true }"
-  final_snapshot_identifier = "${local.db_identifier}-${replace(timestamp(), ":", "-")}"
+  final_snapshot_identifier = "${local.db_identifier}-final"
   copy_tags_to_snapshot = "${ terraform.workspace == "prod" ? true : false }"
   snapshot_identifier = "${ terraform.workspace == "prod" ? data.aws_db_snapshot.latest_prod_snapshot.id : "prod-prerelease-snap" }"
   vpc_security_group_ids = [

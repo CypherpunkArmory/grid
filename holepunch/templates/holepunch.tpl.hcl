@@ -12,6 +12,15 @@ job "holepunch" {
   group "workers"{
     count = 1
 
+    update {
+      max_parallel = 1
+      canary = 1
+      health_check = "checks"
+      min_healthy_time = "30s"
+      healthy_deadline = "3m"
+      auto_revert = true
+    }
+
     task "job-dashboard"{
       driver = "docker"
 
@@ -30,17 +39,7 @@ job "holepunch" {
 
       template {
         data = <<EOH
-{{with secret "secret/holepunch"}}
-DATABASE_URL={{.Data.DATABASE_URL}}
-JWT_SECRET_KEY={{.Data.JWT_SECRET_KEY}}
-MAIL_PASSWORD={{.Data.MAIL_PASSWORD}}
-MAIL_USERNAME={{.Data.MAIL_USERNAME}}
-ROLLBAR_TOKEN={{.Data.ROLLBAR_TOKEN}}
-RQ_REDIS_URL={{.Data.RQ_REDIS_URL}}
-RQ_DASHBOARD_REDIS_URL={{.Data.RQ_REDIS_URL}}
-MIN_CALVER={{.Data.MIN_CALVER}}
-BASE_SERVICE_URL=${base_domain}
-{{end}}
+${env_template}
 EOH
         destination = "/secrets/production"
         env         = true
@@ -92,17 +91,7 @@ EOH
 
       template {
         data = <<EOH
-{{with secret "secret/holepunch"}}
-DATABASE_URL={{.Data.DATABASE_URL}}
-JWT_SECRET_KEY={{.Data.JWT_SECRET_KEY}}
-MAIL_PASSWORD={{.Data.MAIL_PASSWORD}}
-MAIL_USERNAME={{.Data.MAIL_USERNAME}}
-ROLLBAR_TOKEN={{.Data.ROLLBAR_TOKEN}}
-RQ_REDIS_URL={{.Data.RQ_REDIS_URL}}
-RQ_DASHBOARD_REDIS_URL={{.Data.RQ_REDIS_URL}}
-MIN_CALVER={{.Data.MIN_CALVER}}
-BASE_SERVICE_URL=${base_domain}
-{{end}}
+${env_template}
 EOH
         destination = "/secrets/production"
         env         = true
@@ -130,6 +119,15 @@ EOH
   group "services" {
     count = 3
 
+    update {
+      max_parallel = 1
+      canary = 3
+      health_check = "checks"
+      min_healthy_time = "30s"
+      healthy_deadline = "2m"
+      auto_revert = true
+    }
+
     task "web" {
       driver = "docker"
       config = {
@@ -151,19 +149,7 @@ EOH
 
       template {
         data = <<EOH
-{{with secret "secret/holepunch"}}
-DATABASE_URL={{.Data.DATABASE_URL}}
-JWT_SECRET_KEY={{.Data.JWT_SECRET_KEY}}
-MAIL_PASSWORD={{.Data.MAIL_PASSWORD}}
-MAIL_USERNAME={{.Data.MAIL_USERNAME}}
-ROLLBAR_ENV={{.Data.ROLLBAR_ENV}}
-ROLLBAR_TOKEN={{.Data.ROLLBAR_TOKEN}}
-RQ_REDIS_URL={{.Data.RQ_REDIS_URL}}
-RQ_DASHBOARD_REDIS_URL={{.Data.RQ_REDIS_URL}}
-MIN_CALVER={{.Data.MIN_CALVER}}
-BASE_SERVICE_URL=${base_domain}
-CONFIRM_URL=https://${base_domain}/account/confirm/{0}
-{{end}}
+${env_template}
 EOH
         destination = "/secrets/production"
         env         = true

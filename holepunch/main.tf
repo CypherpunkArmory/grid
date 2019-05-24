@@ -93,6 +93,7 @@ resource "acme_certificate" "holepunchio_certificate" {
   count = "${terraform.workspace == "prod" ? 1 : 0}"
   account_key_pem = "${local.account_key_pem}"
   common_name = "api.holepunch.io"
+  min_days_remaining = 30
 
   dns_challenge {
     provider = "route53"
@@ -135,12 +136,19 @@ resource "vault_policy" "holepunch_policy" {
   policy = "${data.template_file.holepunch_policy.rendered}"
 }
 
+data "template_file" "env_file" {
+  template = "${file("${path.module}/templates/env.tpl")}"
+  vars {
+    base_domain = "${local.api_domain}"
+  }
+}
+
 data "template_file" "holepunch_hcl" {
   template = "${file("${path.module}/templates/holepunch.tpl.hcl")}"
   vars {
     deploy_version = "${local.holepunch_deploy_version_default}"
     api_domain = "api.${local.api_domain}"
-    base_domain = "${local.api_domain}"
+    env_template = "${data.template_file.env_file.rendered}"
   }
 }
 
