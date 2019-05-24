@@ -1,3 +1,14 @@
+data "aws_ami" "most_recent_cityworker_ami" {
+  most_recent = true
+
+  filter {
+    name = "name"
+    values = ["CITYWORKER AMI *"]
+  }
+
+  owners = ["578925084144"]
+}
+
 data "aws_ami" "most_recent_city_ami" {
   most_recent = true
 
@@ -44,6 +55,21 @@ data "aws_ami" "particular_city_ami" {
 
   owners = ["578925084144"]
 }
+
+data "aws_ami" "particular_cityworker_ami" {
+  filter {
+    name = "name"
+    values = ["CITYWORKER AMI *"]
+  }
+
+  filter {
+    name = "tag:Version"
+    values = ["${var.cityworker_version == "most_recent" ? data.aws_ami.most_recent_cityworker_ami.tags["Version"] : var.cityworker_version}"]
+  }
+
+  owners = ["578925084144"]
+}
+
 
 
 data "aws_ami" "particular_lb_ami" {
