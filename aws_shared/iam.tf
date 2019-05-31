@@ -90,6 +90,84 @@ resource "aws_iam_user_group_membership" "certbot_user_groups" {
   ]
 }
 
+# The Robot Deploy User - Good for CI/CD
+
+resource "aws_iam_user" "domoroboto" {
+  name = "domoroboto"
+  tags {
+    Substrate = "silicon"
+  }
+}
+
+
+resource "aws_iam_user_group_membership" "domoroboto_user_groups" {
+  user = "${aws_iam_user.domoroboto.name}"
+  groups = [
+    "${aws_iam_group.robots.name}"
+  ]
+}
+
+
+resource "aws_iam_access_key" "domoroboto_key" {
+  user = "${aws_iam_user.domoroboto.name}"
+}
+
+resource "aws_iam_policy" "domoroboto" {
+  description = "Permission policy for the deploy robot"
+  name = "domoroboto"
+  policy = <<POLICY
+{
+   "Version":"2012-10-17",
+   "Statement":[
+      {
+         "Effect":"Allow",
+         "Action":[
+          "ec2:AttachVolume",
+          "ec2:AuthorizeSecurityGroupIngress",
+          "ec2:CopyImage",
+          "ec2:CreateImage",
+          "ec2:CreateKeypair",
+          "ec2:CreateSecurityGroup",
+          "ec2:CreateSnapshot",
+          "ec2:CreateTags",
+          "ec2:CreateVolume",
+          "ec2:DeleteKeyPair",
+          "ec2:DeleteSecurityGroup",
+          "ec2:DeleteSnapshot",
+          "ec2:DeleteVolume",
+          "ec2:DeregisterImage",
+          "ec2:DescribeImageAttribute",
+          "ec2:DescribeImages",
+          "ec2:DescribeInstances",
+          "ec2:DescribeInstanceStatus",
+          "ec2:DescribeRegions",
+          "ec2:DescribeSecurityGroups",
+          "ec2:DescribeSnapshots",
+          "ec2:DescribeSubnets",
+          "ec2:DescribeTags",
+          "ec2:DescribeVolumes",
+          "ec2:DetachVolume",
+          "ec2:GetPasswordData",
+          "ec2:ModifyImageAttribute",
+          "ec2:ModifyInstanceAttribute",
+          "ec2:ModifySnapshotAttribute",
+          "ec2:RegisterImage",
+          "ec2:RunInstances",
+          "ec2:StopInstances",
+          "ec2:TerminateInstances"
+         ],
+         "Resource": "*"
+      }
+   ]
+}
+POLICY
+}
+
+resource "aws_iam_user_policy_attachment" "roboto_policy_attach" {
+  user = "${aws_iam_user.domoroboto.name}"
+  policy_arn = "${aws_iam_policy.domoroboto.arn}"
+}
+
 # AWS Policies
 
 resource "aws_iam_policy" "emailer" {
@@ -141,39 +219,39 @@ resource "aws_iam_policy" "certbot" {
 POLICY
 }
 
-resource "aws_iam_policy" "vmimport" {
-  description = "Role policy for VMIE Amazon Service."
-  name        = "vmimport"
-  policy      = <<POLICY
-{
-   "Version":"2012-10-17",
-   "Statement":[
-      {
-         "Effect":"Allow",
-         "Action":[
-            "s3:GetBucketLocation",
-            "s3:GetObject",
-            "s3:ListBucket"
-         ],
-         "Resource":[
-            "${aws_s3_bucket.city_amis.arn}",
-            "${aws_s3_bucket.city_amis.arn}/*"
-         ]
-      },
-      {
-         "Effect":"Allow",
-         "Action":[
-            "ec2:ModifySnapshotAttribute",
-            "ec2:CopySnapshot",
-            "ec2:RegisterImage",
-            "ec2:Describe*"
-         ],
-         "Resource":"*"
-      }
-   ]
-}
-POLICY
-}
+# resource "aws_iam_policy" "vmimport" {
+#   description = "Role policy for VMIE Amazon Service."
+#   name        = "vmimport"
+#   policy      = <<POLICY
+# {
+#    "Version":"2012-10-17",
+#    "Statement":[
+#       {
+#          "Effect":"Allow",
+#          "Action":[
+#             "s3:GetBucketLocation",
+#             "s3:GetObject",
+#             "s3:ListBucket"
+#          ],
+#          "Resource":[
+#             "${aws_s3_bucket.city_amis.arn}",
+#             "${aws_s3_bucket.city_amis.arn}/*"
+#          ]
+#       },
+#       {
+#          "Effect":"Allow",
+#          "Action":[
+#             "ec2:ModifySnapshotAttribute",
+#             "ec2:CopySnapshot",
+#             "ec2:RegisterImage",
+#             "ec2:Describe*"
+#          ],
+#          "Resource":"*"
+#       }
+#    ]
+# }
+# POLICY
+# }
 
 resource "aws_iam_policy" "city_host" {
   description = "Role policy for City Hosts"
@@ -325,32 +403,32 @@ resource "aws_iam_role_policy_attachment" "datadog_policy_attach" {
   policy_arn = "${aws_iam_policy.datadog.arn}"
 }
 
-resource "aws_iam_role" "vmimport" {
-  name                  = "vmimport"
-  description           = "3rd Party role for Amazon AMI via OVF Creator"
-  assume_role_policy    = <<ASSUME
-{
-   "Version": "2012-10-17",
-   "Statement": [
-      {
-         "Effect": "Allow",
-         "Principal": { "Service": "vmie.amazonaws.com" },
-         "Action": "sts:AssumeRole",
-         "Condition": {
-            "StringEquals":{
-               "sts:Externalid": "vmimport"
-            }
-         }
-      }
-   ]
-}
-ASSUME
-}
+# resource "aws_iam_role" "vmimport" {
+#   name                  = "vmimport"
+#   description           = "3rd Party role for Amazon AMI via OVF Creator"
+#   assume_role_policy    = <<ASSUME
+# {
+#    "Version": "2012-10-17",
+#    "Statement": [
+#       {
+#          "Effect": "Allow",
+#          "Principal": { "Service": "vmie.amazonaws.com" },
+#          "Action": "sts:AssumeRole",
+#          "Condition": {
+#             "StringEquals":{
+#                "sts:Externalid": "vmimport"
+#             }
+#          }
+#       }
+#    ]
+# }
+# ASSUME
+# }
 
-resource "aws_iam_role_policy_attachment" "vmimport_policy_attach" {
-  role       = "${aws_iam_role.vmimport.name}"
-  policy_arn = "${aws_iam_policy.vmimport.arn}"
-  }
+# resource "aws_iam_role_policy_attachment" "vmimport_policy_attach" {
+#   role       = "${aws_iam_role.vmimport.name}"
+#   policy_arn = "${aws_iam_policy.vmimport.arn}"
+#   }
 
 
 resource "aws_iam_role" "city_host" {
