@@ -16,6 +16,12 @@ resource "github_repository" "grid" {
   allow_merge_commit = "false"
 }
 
+resource "github_team_repository" "grid_userland" {
+  team_id    = "${github_team.userland.id}"
+  repository = "${github_repository.grid.name}"
+  permission = "push"
+}
+
 resource "github_repository" "discs" {
   name        = "discs"
   description = "Server Build Scripts"
@@ -33,6 +39,13 @@ resource "github_repository" "discs" {
 
   allow_merge_commit = "false"
 }
+
+resource "github_team_repository" "discs_userland" {
+  team_id    = "${github_team.userland.id}"
+  repository = "${github_repository.discs.name}"
+  permission = "push"
+}
+
 
 resource "github_repository" "holepunch" {
   name        = "holepunch"
@@ -52,6 +65,13 @@ resource "github_repository" "holepunch" {
   allow_merge_commit = "false"
 }
 
+resource "github_team_repository" "holepunch_userland" {
+  team_id    = "${github_team.userland.id}"
+  repository = "${github_repository.holepunch.name}"
+  permission = "push"
+}
+
+
 resource "github_repository" "punch" {
   name        = "punch"
   description = "Holepunch CLI Tool"
@@ -63,23 +83,11 @@ resource "github_repository" "punch" {
   has_wiki      = "false"
   has_projects  = "false"
 
-  lifecycle {
-    prevent_destroy = true
-  }
-
-  allow_merge_commit = "false"
-}
-
-resource "github_repository" "dumont" {
-  name        = "dumont"
-  description = "Commune with the Users"
-
-  private = "true"
-
-  has_downloads = "false"
-  has_issues    = "true"
-  has_wiki      = "false"
-  has_projects  = "false"
+  topics = [
+    "cli",
+    "ssh-tunnel",
+    "golang"
+  ]
 
   lifecycle {
     prevent_destroy = true
@@ -88,15 +96,8 @@ resource "github_repository" "dumont" {
   allow_merge_commit = "false"
 }
 
-resource "github_branch_protection" "dumont" {
-  repository = "${github_repository.dumont.name}"
-  branch = "master"
-
-  required_status_checks {
-    strict = false
-  }
-
-  required_pull_request_reviews {
-    dismiss_stale_reviews = false
-  }
+resource "github_team_repository" "punch_userland" {
+  team_id    = "${github_team.userland.id}"
+  repository = "${github_repository.punch.name}"
+  permission = "push"
 }
