@@ -47,6 +47,12 @@ variable "holepunch_deploy_version" {
 
 variable "min_calver" {}
 variable "rollbar_token" {}
+variable "stripe_key_test" {}
+variable "stripe_key_prod" {}
+
+variable "hook" {
+  default = "none"
+}
 
 locals {
   api_domain = "${terraform.workspace == "prod" ? "holepunch.io" : join(".", list(terraform.workspace, "orbtestenv.net"))}"
@@ -74,7 +80,9 @@ resource vault_generic_secret "holepunch_secrets" {
   "ROLLBAR_ENV": "${terraform.workspace}",
   "ROLLBAR_TOKEN": "${var.rollbar_token}",
   "RQ_REDIS_URL": "${data.terraform_remote_state.aws.holepunch_redis_endpoint}",
-  "MIN_CALVER": "${var.min_calver}"
+  "MIN_CALVER": "${var.min_calver}",
+  "STRIPE_KEY": "${ terraform.workspace == "prod" ? var.stripe_key_prod : var.stripe_key_test}",
+  "STRIPE_ENDPOINT": "https://api.stripe.com"
 }
 EOH
 }
@@ -150,6 +158,12 @@ data "template_file" "holepunch_hcl" {
     api_domain = "api.${local.api_domain}"
     env_template = "${data.template_file.env_file.rendered}"
   }
+
+  depends_on = [
+    "vault_generic_secret.domain_certs",
+    "vault_generic_secret.prod_domain_certs",
+    "vault_generic_secret.holepunch_secrets"
+  ]
 }
 
 resource "nomad_job" "holepunch" {
@@ -165,4 +179,19 @@ data "template_file" "ssh_hcl" {
 
 resource "nomad_job" "ssh" {
   jobspec = "${data.template_file.ssh_hcl.rendered}"
+}
+
+data "template_file" "holepunch_hook_hcl" {
+  template = "${file("${path.module}/templates/hook.tpl.hcl")}"
+  vars {
+    hook = "${element(split(" ", var.hook), 0)}"
+    args = "${jsonencode(slice(split(" ", var.hook), 1, length(split(" ", var.hook))))}"
+    deploy_version = "${local.holepunch_deploy_version_default}"
+    env_template = "${data.template_file.env_file.rendered}"
+  }
+}
+
+resource "nomad_job" "holepunch_hook" {
+  count = "${element(split(" ", var.hook), 0) != "none" ?  1 : 0 }"
+  jobspec = "${data.template_file.holepunch_hook_hcl.rendered}"
 }

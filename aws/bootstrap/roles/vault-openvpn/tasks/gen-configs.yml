@@ -1,7 +1,14 @@
 ---
+- name: Vault Login
+  environment:
+    VAULT_TOKEN: "{{ vault_token }}"
+    VAULT_ADDR: "http://127.0.0.1:8200"
+  command: vault login {{ vault_token }}
+
 - name: Have I already generated the ovpn key?
   environment:
     VAULT_TOKEN: "{{ vault_token }}"
+    VAULT_ADDR: "http://127.0.0.1:8200"
   command: vault kv get -field=key secret/ovpn
   ignore_errors: True
   register: ovpn_created
@@ -9,6 +16,7 @@
 - name: Generate OpenVPN Certificates
   environment:
     VAULT_TOKEN: "{{ vault_token }}"
+    VAULT_ADDR: "http://127.0.0.1:8200"
   when: ovpn_created is failed
   block:
     - name: Use TLS Authentication Hardening
@@ -38,30 +46,21 @@
         dest: /tmp/linuxclient/client.conf
 
     - name: Generate Server Config
-      command: "vault-openvpn server vpn.{{vpn_domain | regex_replace('_', '.')}} --auto-revoke --pki-mountpoint {{vpn_domain}} --ovpn-key secret/ovpn --template-path /tmp/"
+      command: "vault-openvpn server vpn.{{vpn_domain | regex_replace('_', '.')}} --auto-revoke --pki-mountpoint {{vpn_domain}} --ovpn-key secret/ovpn --template-path /tmp/ --log-level debug"
       register: openvpn_server
 
     - name: Generate Client Config
-      command: "vault-openvpn client dev.{{vpn_domain | regex_replace('_', '.')}} --auto-revoke --pki-mountpoint {{vpn_domain}} --ovpn-key secret/ovpn --template-path /tmp/"
+      command: "vault-openvpn client dev.{{vpn_domain | regex_replace('_', '.')}} --auto-revoke --pki-mountpoint {{vpn_domain}} --ovpn-key secret/ovpn --template-path /tmp/ --log-level debug"
       register: openvpn_client
 
     - name: Generate Linux Client Config
-      command: "vault-openvpn client dev.{{vpn_domain | regex_replace('_', '.')}} --auto-revoke --pki-mountpoint {{vpn_domain}} --ovpn-key secret/ovpn --template-path /tmp/linuxclient/"
+      command: "vault-openvpn client dev.{{vpn_domain | regex_replace('_', '.')}} --auto-revoke --pki-mountpoint {{vpn_domain}} --ovpn-key secret/ovpn --template-path /tmp/linuxclient/ --log-level debug"
       register: openvpn_linuxclient
 
     - name: Write the Server Config to to Server
       copy:
         content: "{{openvpn_server.stdout}}"
         dest: /etc/openvpn/server.conf.template
-
-    - name: Write the Server Config to KBFS
-      connection: local
-      become: no
-      vars:
-        ansible_python_interpreter: "{{ ansible_playbook_python }}"
-      copy:
-        content: "{{openvpn_server.stdout}}"
-        dest: "{{ output_directory }}/openvpn_server_{{env}}.conf.template"
 
     - name: Write the Client Config to KBFS
       connection: local
@@ -81,17 +80,9 @@
         content: "{{openvpn_linuxclient.stdout}}"
         dest: "{{ output_directory }}/openvpn_linuxclient_{{env}}.ovpn"
 
-# When the ovpn has already been configured, we need to copy the generated VPN
-# template to the server so that we don't fill the vault up with revoked
-# certificates
-- name: Populate Template on Server
-  environment:
-    VAULT_TOKEN: "{{ vault_token }}"
-  when: ovpn_created is success
-  block:
-    - name: Copy Server Config Template to Server
-      copy:
-        src: "{{ output_directory }}/openvpn_server_{{env}}.conf.template"
-        dest: "/etc/openvpn/server.conf.template"
+- name: Vault Logout
+  file:
+    path: /root/.vault-token
+    state: absent
 
 

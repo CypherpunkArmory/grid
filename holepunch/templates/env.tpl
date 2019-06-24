@@ -10,4 +10,6 @@ RQ_DASHBOARD_REDIS_URL={{.Data.RQ_REDIS_URL}}
 MIN_CALVER={{.Data.MIN_CALVER}}
 BASE_SERVICE_URL=${base_domain}
 CONFIRM_URL=https://${base_domain}/account/confirm/{0}
+STRIPE_KEY={{.Data.STRIPE_KEY}}
+STRIPE_ENDPOINT={{.Data.STRIPE_ENDPOINT}}
 {{end}}

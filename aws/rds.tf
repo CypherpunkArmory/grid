@@ -20,7 +20,7 @@ resource "aws_db_instance" "city_rds" {
   skip_final_snapshot = "${ terraform.workspace == "prod" ? false : true }"
   final_snapshot_identifier = "${local.db_identifier}-final"
   copy_tags_to_snapshot = "${ terraform.workspace == "prod" ? true : false }"
-  snapshot_identifier = "${ terraform.workspace == "prod" ? data.aws_db_snapshot.latest_prod_snapshot.id : "prod-prerelease-snap" }"
+  snapshot_identifier = "${ data.aws_db_snapshot.latest_prod_snapshot.id }"
   vpc_security_group_ids = [
     "${ aws_security_group.city_servers.id }",
   ]
