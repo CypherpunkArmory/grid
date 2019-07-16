@@ -25,6 +25,16 @@ data "terraform_remote_state" "aws_shared" {
   }
 }
 
+
+provider "aws" {
+  region = "us-west-2"
+}
+
+provider "aws" {
+  region = "us-west-2"
+  alias = "us-west"
+}
+
 provider "vault" {
   address = "http://vault.service.city.consul:8200"
 }
@@ -79,10 +89,12 @@ resource vault_generic_secret "holepunch_secrets" {
   "MAIL_PASSWORD": "${data.terraform_remote_state.aws_shared.emailer_password}",
   "ROLLBAR_ENV": "${terraform.workspace}",
   "ROLLBAR_TOKEN": "${var.rollbar_token}",
+  "REDIS_URL":"${data.terraform_remote_state.aws.holepunch_redis_endpoint}",
   "RQ_REDIS_URL": "${data.terraform_remote_state.aws.holepunch_redis_endpoint}",
   "MIN_CALVER": "${var.min_calver}",
   "STRIPE_KEY": "${ terraform.workspace == "prod" ? var.stripe_key_prod : var.stripe_key_test}",
-  "STRIPE_ENDPOINT": "https://api.stripe.com"
+  "STRIPE_ENDPOINT": "https://api.stripe.com",
+  "TCP_LB_IP": "${data.terraform_remote_state.aws.tcp_lb_endpoint}"
 }
 EOH
 }
@@ -158,16 +170,15 @@ data "template_file" "holepunch_hcl" {
     api_domain = "api.${local.api_domain}"
     env_template = "${data.template_file.env_file.rendered}"
   }
+}
 
+resource "nomad_job" "holepunch" {
+  jobspec = "${data.template_file.holepunch_hcl.rendered}"
   depends_on = [
     "vault_generic_secret.domain_certs",
     "vault_generic_secret.prod_domain_certs",
     "vault_generic_secret.holepunch_secrets"
   ]
-}
-
-resource "nomad_job" "holepunch" {
-  jobspec = "${data.template_file.holepunch_hcl.rendered}"
 }
 
 data "template_file" "ssh_hcl" {

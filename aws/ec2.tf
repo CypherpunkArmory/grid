@@ -1,12 +1,16 @@
 locals {
+  # Note the below uses the city profile
   cityworker_host_profile = "${data.terraform_remote_state.aws_shared.city_host_profile_name}"
   city_host_profile = "${data.terraform_remote_state.aws_shared.city_host_profile_name}"
   dmz_host_profile =  "${data.terraform_remote_state.aws_shared.dmz_host_profile_name}"
   lb_host_profile =  "${data.terraform_remote_state.aws_shared.lb_host_profile_name}"
+  # Note the below uses the lb profile
+  tcplb_host_profile =  "${data.terraform_remote_state.aws_shared.lb_host_profile_name}"
   openvpn_conf = "${var.output_directory}/${terraform.workspace}/openvpn_server_${terraform.workspace}.conf"
   cityworker_ami_id = "${var.cityworker_version == "most_recent" ? data.aws_ami.most_recent_cityworker_ami.id : data.aws_ami.particular_cityworker_ami.id}"
   city_ami_id = "${var.city_version == "most_recent" ? data.aws_ami.most_recent_city_ami.id : data.aws_ami.particular_city_ami.id}"
   lb_ami_id = "${var.lb_version == "most_recent" ? data.aws_ami.most_recent_lb_ami.id : data.aws_ami.particular_lb_ami.id}"
+  tcplb_ami_id = "${var.tcplb_version == "most_recent" ? data.aws_ami.most_recent_tcplb_ami.id : data.aws_ami.particular_tcplb_ami.id}"
   dmz_ami_id = "${var.dmz_version == "most_recent" ? data.aws_ami.most_recent_dmz_ami.id : data.aws_ami.particular_dmz_ami.id}"
   cityworker_version = "${var.cityworker_version == "most_recent" ? data.aws_ami.most_recent_cityworker_ami.tags["Version"] : data.aws_ami.particular_cityworker_ami.tags["Version"]}"
   city_version = "${var.city_version == "most_recent" ? data.aws_ami.most_recent_city_ami.tags["Version"] : data.aws_ami.particular_city_ami.tags["Version"]}"
@@ -134,6 +138,108 @@ resource "aws_instance" "city_lb" {
       playbook = {
         file_path = "${path.module}/city_lb/city_lb.yml"
         roles_path = ["${path.module}/city_lb/roles"]
+      }
+
+      hosts = ["${self.public_ip}"]
+      vault_id = ["${var.output_directory}/ansible-vault-password.txt"]
+
+      extra_vars = {
+        env               = "${terraform.workspace}"
+        dmz_private_ip    = "${aws_instance.dmz.private_ip}"
+        cluster_size      = "${var.city_hosts}"
+        vault_file        = "${var.output_directory}/ansible-vault.yml"
+        output_directory  = "${var.output_directory}/${terraform.workspace}"
+        github_org        = "${var.github_org}"
+        dev_team          = "userland"
+        aws_account_id    = "${data.aws_caller_identity.current.account_id}"
+        vpc_active_subnet = "172.31.0.0"
+        vpc_vpn_subnet    = "172.16.0.0"
+        vpn_domain        = "${terraform.workspace == "prod" ? "hole.ly" : join(".", list(terraform.workspace, "testinghole.com"))}"
+      }
+    }
+  }
+
+}
+
+data "template_file" "city_tcplb_cloud_init" {
+  template = "${file("${path.module}/cloud-init/city_tcplb.yml")}"
+  vars {
+    hostname = "city-tcplb${terraform.workspace != "prod" ? terraform.workspace : ""}"
+    tcplb_district = "city" }
+}
+
+resource "aws_instance" "city_tcplb" {
+  ami                    = "${local.tcplb_ami_id}"
+  instance_type          = "t2.micro"
+  user_data              = "${data.template_file.city_tcplb_cloud_init.rendered}"
+  iam_instance_profile   = "${local.tcplb_host_profile}"
+  subnet_id              = "${aws_subnet.city_vpc_subnet.id}"
+  monitoring             = true
+  vpc_security_group_ids = ["${aws_security_group.tcplb_servers.id}"]
+
+  lifecycle {
+    create_before_destroy = 1
+  }
+
+  tags {
+    District = "city"
+    Usage    = "app"
+    Name     = "city_tcplb${terraform.workspace != "prod" ? terraform.workspace : ""}"
+    Role     = "tcplb"
+    Environment = "${terraform.workspace}"
+  }
+
+  depends_on = ["aws_vpc.city_vpc", "aws_instance.dmz"]
+
+  # Overwrite the standard fabio config on the node image
+
+  provisioner "file" {
+    source      = "city_tcplb/templates/fabio.conf"
+    destination = "/home/alan/fabio.conf"
+    connection {
+      type = "ssh"
+      user = "alan"
+    }
+  }
+
+  # Download our special fabio binary,  Move the config and fabio in place.
+  # Restart the service.
+
+  provisioner "remote-exec" {
+    inline = [
+      "wget https://github.com/CypherpunkArmory/fabio/releases/download/v1.5.11-alpha/fabio",
+      "sudo mv /home/alan/fabio.conf /etc/fabio.conf",
+      "sudo chown fabio.fabio /etc/fabio.conf",
+      "sudo chmod 644 /etc/fabio.conf",
+      "sudo mv /home/alan/fabio /usr/bin/fabio",
+      "sudo chown root.root /usr/bin/fabio",
+      "sudo chmod +x /usr/bin/fabio",
+      "sudo systemctl restart fabio.service",
+      "sudo systemctl status fabio.service",
+    ]
+    connection {
+      type = "ssh"
+      user = "alan"
+    }
+  }
+
+  provisioner "ansible" {
+    when = "create"
+
+    connection {
+      host = "${self.public_ip}"
+      user = "alan"
+      type = "ssh"
+    }
+
+    ansible_ssh_settings {
+      insecure_no_strict_host_key_checking = true
+    }
+
+    plays {
+      playbook = {
+        file_path = "${path.module}/city_tcplb/city_tcplb.yml"
+        roles_path = ["${path.module}/city_tcplb/roles"]
       }
 
       hosts = ["${self.public_ip}"]

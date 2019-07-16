@@ -1,13 +1,8 @@
-# after lowering the citywork number and terraforming be sure to run GC
-# curl     --request PUT     http://nomad.service.city.consul:4646/v1/system/gc
-
 #  Use the below value to increase the size of the Nomad cluster on demand.
-#  After lowering the citywork number and terraforming be sure to run GC
-#  curl     --request PUT     http://nomad.service.city.consul:4646/v1/system/gc
-
 variable "city_hosts" {
   default = 3
 }
+
 
 variable "cityworker_hosts" {
   default = 0
@@ -22,6 +17,10 @@ variable "cityworker_version" {
 }
 
 variable "lb_version" {
+  default = "most_recent"
+}
+
+variable "tcplb_version" {
   default = "most_recent"
 }
 

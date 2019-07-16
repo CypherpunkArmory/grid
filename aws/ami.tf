@@ -31,6 +31,17 @@ data "aws_ami" "most_recent_lb_ami" {
   owners = ["578925084144"]
 }
 
+data "aws_ami" "most_recent_tcplb_ami" {
+  most_recent = true
+
+  filter {
+    name = "name"
+    values = ["TCPLB AMI *"]
+  }
+
+  owners = ["578925084144"]
+}
+
 data "aws_ami" "most_recent_dmz_ami" {
   most_recent = true
 
@@ -81,6 +92,20 @@ data "aws_ami" "particular_lb_ami" {
   filter {
     name = "tag:Version"
     values = ["${var.lb_version == "most_recent" ? data.aws_ami.most_recent_lb_ami.tags["Version"] : var.lb_version}"]
+  }
+
+  owners = ["578925084144"]
+}
+
+data "aws_ami" "particular_tcplb_ami" {
+  filter {
+    name = "name"
+    values = ["TCPLB AMI *"]
+  }
+
+  filter {
+    name = "tag:Version"
+    values = ["${var.lb_version == "most_recent" ? data.aws_ami.most_recent_tcplb_ami.tags["Version"] : var.tcplb_version}"]
   }
 
   owners = ["578925084144"]

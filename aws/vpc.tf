@@ -135,6 +135,21 @@ resource "aws_eip" "city_lb_ip" {
   }
 }
 
+resource "aws_eip" "city_tcplb_ip" {
+  count = "${terraform.workspace == "prod" ? 1 : 0}"
+  instance = "${aws_instance.city_tcplb.id}"
+  vpc = true
+
+  depends_on = ["aws_internet_gateway.gw"]
+
+  tags {
+    District = "city"
+    Usage = "app"
+    Role = "lb"
+    Environment = "${terraform.workspace}"
+  }
+}
+
 resource "aws_eip" "dmz_ip" {
   count = "${terraform.workspace == "prod" ? 1 : 0}"
   instance = "${aws_instance.dmz.id}"
