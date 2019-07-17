@@ -45,3 +45,7 @@ output "testinghole_zone" {
 output "orbtestenv_zone" {
   value = "${aws_route53_zone.orbtestenv.zone_id}"
 }
+
+output "testpunch_cloudflare_zone" {
+  value = "${cloudflare_zone.holepunch_stg_zone.zone}"
+}

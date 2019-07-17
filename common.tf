@@ -9,6 +9,8 @@ variable "min_calver" {}
 variable "jwt_secret_key" {}
 variable "rds_password" {}
 variable "lets_encrypt_email" {}
+variable "cloudflare_email" {}
+variable "cloudflare_token" {}
 
 provider "aws" {
   version        = "~> 2.16"
@@ -25,6 +27,11 @@ provider "acme" {
 
 provider "null" {
   version  = "~> 2.1"
+}
+
+provider "cloudflare" {
+  email = "${var.cloudflare_email}"
+  token = "${var.cloudflare_token}"
 }
 
 provider "tls" { }

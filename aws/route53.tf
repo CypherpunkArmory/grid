@@ -1,6 +1,7 @@
 locals {
   dmz_zone = "${terraform.workspace == "prod" ? data.terraform_remote_state.aws_shared.hole_ly_zone : data.terraform_remote_state.aws_shared.testinghole_zone}"
   api_zone = "${terraform.workspace == "prod" ? data.terraform_remote_state.aws_shared.holepunch_zone : data.terraform_remote_state.aws_shared.orbtestenv_zone}"
+  web_zone = "${terraform.workspace == "prod" ? data.terraform_remote_state.aws_shared.holepunch_zone : data.terraform_remote_state.aws_shared.orbtestenv_zone}"
   dmz_domain = "${terraform.workspace == "prod" ? "hole.ly" : join(".", list(terraform.workspace, "testinghole.com"))}"
   api_domain = "${terraform.workspace == "prod" ? "holepunch.io" : join(".", list(terraform.workspace, "orbtestenv.net"))}"
   account_key_pem = "${data.terraform_remote_state.aws_shared.acme_registration_private_key}"
