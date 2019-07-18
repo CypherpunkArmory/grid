@@ -29,6 +29,7 @@ data "terraform_remote_state" "github" {
 module "prater" {
   source = "./user"
   username = "prater"
+  email = "prater@londontrustmedia.com"
   keybase_name = "stephenprater"
   github_name = "stephenprater"
   github_role = "admin"

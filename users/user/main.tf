@@ -35,5 +35,6 @@ resource "datadog_user" "user" {
   email = "${var.email == "" ? local.username : var.email}"
   handle = "${local.username}"
   name = "${var.name}"
-  is_admin = "${var.github_role == "admin" ? true : false}"
+  access_role = "adm"
+  is_admin = "true"
 }

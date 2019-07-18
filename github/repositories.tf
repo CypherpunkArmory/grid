@@ -61,6 +61,11 @@ resource "github_repository" "holepunch" {
   lifecycle {
     prevent_destroy = true
   }
+  topics = [
+    "rest-api",
+    "reverse-tunnel",
+    "python",
+  ]
 
   allow_merge_commit = "false"
 }
@@ -86,7 +91,8 @@ resource "github_repository" "punch" {
   topics = [
     "cli",
     "ssh-tunnel",
-    "golang"
+    "golang",
+    "reverse-tunnel",
   ]
 
   lifecycle {
