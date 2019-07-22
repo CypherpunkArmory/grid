@@ -1,7 +1,7 @@
 resource "aws_elasticache_cluster" "holepunch-redis" {
   cluster_id = "holepunch-${substr(terraform.workspace, 0, min(9, length(terraform.workspace)))}"
   engine = "redis"
-  node_type = "cache.t2.micro"
+  node_type = "cache.t3a.micro"
   num_cache_nodes = 1
   parameter_group_name = "default.redis4.0"
   engine_version = "4.0.10"

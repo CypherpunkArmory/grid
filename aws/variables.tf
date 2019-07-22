@@ -5,7 +5,7 @@ variable "city_hosts" {
 
 
 variable "cityworker_hosts" {
-  default = 0
+  default = 3
 }
 
 variable "city_version" {
