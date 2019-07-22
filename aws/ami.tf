@@ -61,7 +61,7 @@ data "aws_ami" "particular_city_ami" {
 
   filter {
     name = "tag:Version"
-    values = ["${var.city_version == "most_recent" ? data.aws_ami.most_recent_city_ami.tags["Version"] : var.city_version}"]
+    values = ["${var.city_version}"]
   }
 
   owners = ["578925084144"]
@@ -75,7 +75,7 @@ data "aws_ami" "particular_cityworker_ami" {
 
   filter {
     name = "tag:Version"
-    values = ["${var.cityworker_version == "most_recent" ? data.aws_ami.most_recent_cityworker_ami.tags["Version"] : var.cityworker_version}"]
+    values = ["${var.cityworker_version}"]
   }
 
   owners = ["578925084144"]
@@ -91,7 +91,7 @@ data "aws_ami" "particular_lb_ami" {
 
   filter {
     name = "tag:Version"
-    values = ["${var.lb_version == "most_recent" ? data.aws_ami.most_recent_lb_ami.tags["Version"] : var.lb_version}"]
+    values = ["${var.lb_version}"]
   }
 
   owners = ["578925084144"]
@@ -105,7 +105,7 @@ data "aws_ami" "particular_tcplb_ami" {
 
   filter {
     name = "tag:Version"
-    values = ["${var.lb_version == "most_recent" ? data.aws_ami.most_recent_tcplb_ami.tags["Version"] : var.tcplb_version}"]
+    values = ["${var.tcplb_version}"]
   }
 
   owners = ["578925084144"]
@@ -119,7 +119,7 @@ data "aws_ami" "particular_dmz_ami" {
 
   filter {
     name = "tag:Version"
-    values = ["${var.dmz_version == "most_recent" ? data.aws_ami.most_recent_dmz_ami.tags["Version"] : var.dmz_version}"]
+    values = ["${var.dmz_version}"]
   }
 
   owners = ["578925084144"]
