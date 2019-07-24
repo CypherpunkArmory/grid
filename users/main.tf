@@ -95,20 +95,6 @@ module "chris" {
   userland_team_id = "${data.terraform_remote_state.github.userland_team_id}"
 }
 
-
-# Brandon Presley (Contractor)
-
-module "brandon" {
-  source = "./user"
-  username = "brandon"
-  email = "presley.brandon@gmail.com"
-  keybase_name = "aytch"
-  github_name = "aytch"
-  github_role = "member"
-  name = "Brandon Presley"
-  userland_team_id = "${data.terraform_remote_state.github.userland_team_id}"
-}
-
 resource "aws_iam_group_membership" "admins" {
   name = "admin_membership"
   group = "${data.terraform_remote_state.aws_shared.admin_group_name}"
@@ -127,7 +113,6 @@ resource "aws_iam_group_membership" "developers" {
     "${module.andrew.username}",
     "${module.matthew.username}",
     "${module.thomas.username}",
-    "${module.brandon.username}",
     "${module.chris.username}"
   ]
 }
