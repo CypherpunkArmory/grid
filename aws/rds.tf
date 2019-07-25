@@ -11,7 +11,7 @@ resource "aws_db_instance" "city_rds" {
   identifier = "${local.db_identifier}"
   storage_type = "gp2"
   engine_version = "10.6"
-  instance_class = "${ terraform.workspace == "prod" ? "db.t3a.small" : "db.t2.micro" }"
+  instance_class = "${ terraform.workspace == "prod" ? "db.t2.small" : "db.t2.micro" }"
   availability_zone = "us-west-2c"
   db_subnet_group_name = "${aws_db_subnet_group.city_db.name}"
   multi_az = false
