@@ -27,6 +27,7 @@ data "terraform_remote_state" "aws_shared" {
 
 
 provider "aws" {
+  version = "~> 2.1"
   region = "us-west-2"
 }
 
@@ -179,17 +180,6 @@ resource "nomad_job" "holepunch" {
     "vault_generic_secret.prod_domain_certs",
     "vault_generic_secret.holepunch_secrets"
   ]
-}
-
-data "template_file" "ssh_hcl" {
-  template = "${file("${path.module}/templates/ssh.tpl.hcl")}"
-  vars {
-    deploy_version = "${local.ssh_deploy_version_default}"
-  }
-}
-
-resource "nomad_job" "ssh" {
-  jobspec = "${data.template_file.ssh_hcl.rendered}"
 }
 
 data "template_file" "holepunch_hook_hcl" {

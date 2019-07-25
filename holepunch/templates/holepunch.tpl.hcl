@@ -8,8 +8,7 @@ job "holepunch" {
   }
 
   type = "service"
-
-  group "workers"{
+  group "job-dash"{
     count = 1
 
     update {
@@ -19,6 +18,7 @@ job "holepunch" {
       min_healthy_time = "30s"
       healthy_deadline = "3m"
       auto_revert = true
+      auto_promote = true
     }
 
     task "job-dashboard"{
@@ -75,6 +75,19 @@ EOH
         }
       }
     }
+    }
+  group "workers"{
+    count = 2
+
+    update {
+      max_parallel = 1
+      canary = 2
+      health_check = "checks"
+      min_healthy_time = "30s"
+      healthy_deadline = "3m"
+      auto_revert = true
+      auto_promote = true
+    }
 
     task "jobs"{
       driver = "docker"
@@ -108,15 +121,66 @@ EOH
 
       resources {
         cpu = 250
-        memory = 250
+        memory = 100
         network {
           mbits = 1
         }
       }
     }
   }
+  group "scheduler"{
+    count = 1
 
-  group "services" {
+    update {
+      max_parallel = 1
+      canary = 1
+      health_check = "checks"
+      min_healthy_time = "30s"
+      healthy_deadline = "3m"
+      auto_revert = true
+      auto_promote = true
+    }
+
+    task "jobs"{
+      driver = "docker"
+
+      config = {
+        image = "cypherpunkarmory/holepunch-production:${deploy_version}"
+        force_pull = true
+        entrypoint = ["/bin/bash" , "-l", "-c"]
+        command = "python -m flask rq scheduler"
+        labels {
+          usage = "jobs"
+        }
+      }
+
+      template {
+        data = <<EOH
+${env_template}
+EOH
+        destination = "/secrets/production"
+        env         = true
+        change_mode = "restart"
+      }
+
+      env {
+        FLASK_APP = "app:create_app('production')"
+        FLASK_ENV = "production"
+        CONSUL_HOST = "172.17.0.1"
+        CLUSTER_HOST = "172.17.0.1"
+        DD_AGENT_HOST = "172.17.0.1"
+      }
+
+      resources {
+        cpu = 100
+        memory = 150
+        network {
+          mbits = 1
+        }
+      }
+    }
+  }
+  group "api" {
     count = 3
 
     update {
@@ -126,6 +190,7 @@ EOH
       min_healthy_time = "30s"
       healthy_deadline = "2m"
       auto_revert = true
+      auto_promote = true
     }
 
     task "web" {
@@ -213,7 +278,7 @@ EOH
 
       resources {
         cpu = 250
-        memory = 250
+        memory = 150
         network {
           mbits = 1
           port "https" {}
