@@ -30,7 +30,7 @@ data "template_file" "cityworker_cloud_init" {
 resource "aws_instance" "cityworker_host" {
   count = "${var.cityworker_hosts}"
   ami = "${local.cityworker_ami_id}"
-  instance_type = "t2.micro"
+  instance_type = "t2.small"
   user_data = "${data.template_file.cityworker_cloud_init.*.rendered[count.index]}"
   iam_instance_profile = "${local.cityworker_host_profile}"
   subnet_id = "${aws_subnet.city_private_subnet.id}"
