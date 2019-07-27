@@ -1,6 +1,6 @@
 storage "dynamodb" {
   ha_enabled = "false"
-  table      = "vault-secrets-{{ env }}"
+  table      = "vault-secrets-TFWORKSPACE"
   region     = "us-west-2"
 }
 
@@ -13,7 +13,7 @@ listener "tcp" {
 
 seal "awskms" {
   region = "us-west-2"
-  kms_key_id = "{{ key_id }}"
+  kms_key_id = "KMSKEYID"
 }
 
 telemetry {

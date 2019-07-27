@@ -1,0 +1,57 @@
+#!/bin/bash
+#
+###############################################################################
+# CSCHAFER 7/11/2019
+#
+# Post install ssh key configuration for ssh proxy node in user land
+# Specifically loads them from vault.  If they aren't there creates them and
+# loads them to vault.
+
+export VAULT_ADDR="http://vault:8200"
+export VAULT_TOKEN=`awk -F ":" '/Initial Root Token/ { print $2 }' \
+  /home/alan/vault_recovery`
+
+# wait till we can use consul to resolve the vault service
+while ! timeout --preserve-status 10 bash -c ">/dev/tcp/vault/8200 &>/dev/null"; do
+   sleep 10
+done
+
+rm -f /etc/ssh/ssh_host_dsa_key /etc/ssh/ssh_host_dsa_key.pub
+
+if vault kv get -field=key secret/sshkeys/ssh_host_rsa_key >/dev/null;  then
+  echo " Install all 3 supported keys "
+  vault kv get -field=key secret/sshkeys/ssh_host_rsa_key\
+   >/etc/ssh/ssh_host_rsa_key
+  vault kv get -field=key secret/sshkeys/ssh_host_rsa_key_pub\
+   >/etc/ssh/ssh_host_rsa_key.pub
+  vault kv get -field=key secret/sshkeys/ssh_host_ed25519_key\
+   >/etc/ssh/ssh_host_ed25519_key
+  vault kv get -field=key secret/sshkeys/ssh_host_ed25519_key_pub\
+   >/etc/ssh/ssh_host_ed25519_key.pub
+  vault kv get -field=key secret/sshkeys/ssh_host_ecdsa_key\
+   >/etc/ssh/ssh_host_ecdsa_key
+  vault kv get -field=key secret/sshkeys/ssh_host_ecdsa_key_pub\
+   >/etc/ssh/ssh_host_ecdsa_key.pub
+else
+  echo "# Generate and install the 3 keys"
+  yes y | ssh-keygen -q -o -b 4096 -t rsa -C UserLAnd -N '' \
+  -f /etc/ssh/ssh_host_rsa_key >/dev/null;
+  vault kv put secret/sshkeys/ssh_host_rsa_key\
+   key=@/etc/ssh/ssh_host_rsa_key;
+  vault kv put secret/sshkeys/ssh_host_rsa_key_pub\
+   key=@/etc/ssh/ssh_host_rsa_key.pub;
+  # Create the ed25519 keys
+  yes y | ssh-keygen -q -o -t ed25519 -C UserLAnd -N ''\
+   -f /etc/ssh/ssh_host_ed25519_key >/dev/null
+  vault kv put secret/sshkeys/ssh_host_ed25519_key\
+   key=@/etc/ssh/ssh_host_ed25519_key;
+  vault kv put secret/sshkeys/ssh_host_ed25519_key_pub\
+   key=@/etc/ssh/ssh_host_ed25519_key.pub;
+  # Create the ecdsa keys
+  yes y | ssh-keygen -q -o -b 521 -t ecdsa -C UserLAnd -N ''\
+   -f /etc/ssh/ssh_host_ecdsa_key >/dev/null;
+  vault kv put secret/sshkeys/ssh_host_ecdsa_key\
+   key=@/etc/ssh/ssh_host_ecdsa_key;
+  vault kv put secret/sshkeys/ssh_host_ecdsa_key_pub\
+   key=@/etc/ssh/ssh_host_ecdsa_key.pub;
+fi

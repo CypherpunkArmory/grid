@@ -1,0 +1,104 @@
+#!/bin/bash
+#
+###############################################################################
+# CSCHAFER 7/11/2019
+#
+# configure vault and load the local environment
+
+# Source variables from templated file from terraform
+
+. ~/vault_terraform_vars
+
+export VAULT_ADDR="http://127.0.0.1:8200"
+
+cp /home/alan/provisioner/templates/vault.hcl /etc/vault.hcl
+#Fix vault config
+
+# Set workspace
+sed -i 's/TFWORKSPACE/'"$TFWS"'/' /etc/vault.hcl
+# Set KMS Key ID
+sed -i 's/KMSKEYID/'"$KMSKEYID"'/' /etc/vault.hcl
+chown vault.vault /etc/vault.hcl
+chmod 0644 /etc/vault.hcl
+systemctl restart vault
+
+# Wait for vault to start
+while ! timeout --preserve-status 10 bash -c ">/dev/tcp/localhost/8200 &>/dev/null"; do
+  sleep 1
+done
+
+if vault status -address=http://127.0.0.1:8200 |\
+                      awk  '/Initialized/ { print $2 }'| grep false; then
+    vault operator init -address=http://127.0.0.1:8200> /home/alan/vault_recovery
+fi
+
+export VAULT_TOKEN=`awk -F ":" '/Initial Root Token/ { print $2 }' \
+  /home/alan/vault_recovery`
+
+AUTH_METHODS=`vault auth list`
+POLICY_LIST=`vault policy list`
+
+BACKEND_LIST=`vault secrets list`
+if ! echo $BACKEND_LIST| grep secret/; then
+  vault secrets enable -version=1 -path=secret kv
+fi
+
+SECRETS_LIST=`vault kv list secret`
+
+# This covers the prior aws file
+if ! echo $AUTH_METHODS | grep aws/; then
+  vault auth enable aws
+  vault write /auth/aws/config/identity iam_alias=full_arn
+  vault policy write city-host-policy files/city-host-policy.hcl
+  vault policy write dmz-host-policy files/dmz-host-policy.hcl
+  vault policy write lb-host-policy files/lb-host-policy.hcl
+
+  vault write auth/aws/role/city-host auth_type=iam \
+        bound_iam_principal_arn=arn:aws:iam::$AWS_ACCOUNT_ID:role/city_host \
+        policies=city-host-policy max_ttl=500h
+  vault write auth/aws/role/dmz-host auth_type=iam \
+        bound_iam_principal_arn=arn:aws:iam::$AWS_ACCOUNT_ID:role/dmz_host \
+        policies=dmz-host-policy max_ttl=500h
+  vault write auth/aws/role/lb-host auth_type=iam \
+        bound_iam_principal_arn=arn:aws:iam::$AWS_ACCOUNT_ID:role/lb_host \
+        policies=lb-host-policy max_ttl=500h
+fi
+# This covers the prior infra secrets file
+if ! echo $SECRETS_LIST | grep infra; then
+sed -i 's/DD_API_KEY/'"$DD_API_KEY"'/' templates/infra_secrets.json
+sed -i 's/DOCKER_BOT_PASS/'"$DOCKER_BOT_PASS"'/' templates/infra_secrets.json
+sed -i 's/TFWS/'"$TFWS"'/' templates/infra_secrets.json
+sed -i 's/CLUSTER_SIZE/'"$CLUSTER_SIZE"'/' templates/infra_secrets.json
+
+vault kv put secret/infra @templates/infra_secrets.json
+fi
+# This covers the prior github file
+if ! echo $AUTH_METHODS | grep github/; then
+  vault auth enable github
+  vault write auth/github/config organization=$GITHUB_ORG
+  vault policy write dev-policy files/dev-policy.hcl
+  vault write auth/github/map/teams/$DEV_TEAM value=dev-policy
+fi
+
+# This covers the prior nomad file
+if ! echo $POLITCY_LIST| grep nomad-server; then
+  vault policy write nomad-server files/nomad-server.hcl
+  vault write /auth/token/roles/nomad-cluster @files/nomad-cluster-role.json
+  vault write /auth/token/roles/nomad-server @files/nomad-server-role.json
+fi
+
+# This covers the PKI file
+if ! echo $BACKEND_LIST| grep $VPN_DOMAIN/; then
+  vault secrets enable -path $VPN_DOMAIN -description='PKI for VPN' \
+        -max-lease-ttl=87600h pki
+  vault write $VPN_DOMAIN/root/generate/internal \
+        common_name=''"$VPN_DOMAIN"'' ttl=87600h
+  vault write $VPN_DOMAIN/config/urls \
+        issuing_certificates=${VAULT_ADDR}/v1/$VPN_DOMAIN/ca \
+        crl_distribution_points=${VAULT_ADDR}/v1/$VPN_DOMAIN/crl
+  vault write $VPN_DOMAIN/roles/openvpn \
+        allowed_domains=''"$VPN_DOMAIN"'' \
+        allow_subdomains='true' max_ttl='8760h' allow_ip_sans=false \
+        allow_localhost=false
+fi
+

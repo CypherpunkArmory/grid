@@ -1,5 +1,8 @@
 #cloud-config
 ---
+manage_etc_hosts: localhost
+hostname: ${hostname}
+
 system_info:
   default_user:
     name: alan
@@ -18,6 +21,3 @@ write_files:
       gh:MatthewTighe
       gh:luongthomas
       gh:xophere
-
-hostname: ${hostname}
-

@@ -1,8 +1,0 @@
----
-- import_tasks: vault-openvpn.yml
-- import_tasks: gen-configs.yml
-
-- name: Restart OpenVPN
-  service:
-    name: openvpn-server
-    state: restarted

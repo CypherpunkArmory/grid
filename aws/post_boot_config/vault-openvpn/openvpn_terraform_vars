@@ -1,0 +1,8 @@
+#!/bin/bash
+# just using terraform template to load values into the shell run time.
+# Sourced by the vault openvpn config script at run time.
+
+export TFWS=${tfworkspace}
+export VPN_DOMAIN=${vpn_domain}
+export VPC_ACTIVE_SUBNET=${vpc_active_subnet}
+export VPC_VPN_SUBNET=${vpc_vpn_subnet}

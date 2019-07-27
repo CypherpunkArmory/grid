@@ -11,6 +11,8 @@ variable "rds_password" {}
 variable "lets_encrypt_email" {}
 variable "cloudflare_email" {}
 variable "cloudflare_token" {}
+variable "docker_bot_pass" {}
+variable "kms_key_id" {}
 
 provider "aws" {
   version        = "~> 2.16"
