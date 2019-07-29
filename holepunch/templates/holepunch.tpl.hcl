@@ -131,16 +131,6 @@ EOH
   group "scheduler"{
     count = 1
 
-    update {
-      max_parallel = 1
-      canary = 1
-      health_check = "checks"
-      min_healthy_time = "30s"
-      healthy_deadline = "3m"
-      auto_revert = true
-      auto_promote = true
-    }
-
     task "jobs"{
       driver = "docker"
 
