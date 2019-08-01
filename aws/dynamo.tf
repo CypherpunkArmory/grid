@@ -24,7 +24,7 @@ resource "aws_dynamodb_table" "vault-secrets" {
     type = "S"
   }
 
-  tags {
+  tags = {
     District    = "city"
     Usage       = "infra"
     Name        = "city_vault"

@@ -3,7 +3,7 @@ resource "aws_security_group" "city_servers" {
   vpc_id      = "${aws_vpc.city_vpc.id}"
   description = "Allow SSH / HTTP / HTTP(s) traffic to City"
 
-  tags {
+  tags = {
     District = "city"
     Usage = "app"
     Environment = "${terraform.workspace}"
@@ -15,7 +15,7 @@ resource "aws_security_group" "dmz_server" {
   vpc_id      = "${aws_vpc.city_vpc.id}"
   description = "Allow UDP OpenVPN traffic to DMZ"
 
-  tags {
+  tags = {
     District = "dmz"
     Environment = "${terraform.workspace}"
   }
@@ -90,7 +90,7 @@ resource "aws_security_group" "tcplb_servers" {
   vpc_id      = "${aws_vpc.city_vpc.id}"
   description = "Allow 22 internal, and 10,000-25,000 for user tcp ports"
 
-  tags {
+  tags = {
     District = "city"
     Usage = "app"
     Environment = "${terraform.workspace}"

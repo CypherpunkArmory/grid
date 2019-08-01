@@ -1,10 +1,10 @@
 locals {
-  dmz_zone = "${terraform.workspace == "prod" ? data.terraform_remote_state.aws_shared.hole_ly_zone : data.terraform_remote_state.aws_shared.testinghole_zone}"
-  api_zone = "${terraform.workspace == "prod" ? data.terraform_remote_state.aws_shared.holepunch_zone : data.terraform_remote_state.aws_shared.orbtestenv_zone}"
-  web_zone = "${terraform.workspace == "prod" ? data.terraform_remote_state.aws_shared.holepunch_zone : data.terraform_remote_state.aws_shared.orbtestenv_zone}"
-  dmz_domain = "${terraform.workspace == "prod" ? "hole.ly" : join(".", list(terraform.workspace, "testinghole.com"))}"
-  api_domain = "${terraform.workspace == "prod" ? "holepunch.io" : join(".", list(terraform.workspace, "orbtestenv.net"))}"
-  account_key_pem = "${data.terraform_remote_state.aws_shared.acme_registration_private_key}"
+  dmz_zone        = terraform.workspace == "prod" ? data.terraform_remote_state.aws_shared.outputs.hole_ly_zone : data.terraform_remote_state.aws_shared.outputs.testinghole_zone
+  api_zone        = terraform.workspace == "prod" ? data.terraform_remote_state.aws_shared.outputs.holepunch_zone : data.terraform_remote_state.aws_shared.outputs.orbtestenv_zone
+  web_zone        = terraform.workspace == "prod" ? data.terraform_remote_state.aws_shared.outputs.holepunch_zone : data.terraform_remote_state.aws_shared.outputs.orbtestenv_zone
+  dmz_domain      = terraform.workspace == "prod" ? "hole.ly" : join(".", [terraform.workspace, "testinghole.com"])
+  api_domain      = terraform.workspace == "prod" ? "holepunch.io" : join(".", [terraform.workspace, "orbtestenv.net"])
+  account_key_pem = data.terraform_remote_state.aws_shared.outputs.acme_registration_private_key
 }
 
 

@@ -18,11 +18,12 @@ resource "aws_route53_zone" "testinghole" {
 
 resource "tls_private_key" "pushbutton" {
   algorithm = "RSA"
-  rsa_bits = 2048
+  rsa_bits  = 2048
 }
 
 resource "acme_registration" "lets_encrypt_reg" {
-  depends_on = ["tls_private_key.pushbutton"]
-  account_key_pem = "${tls_private_key.pushbutton.private_key_pem}"
-  email_address = "${var.lets_encrypt_email}"
+  depends_on      = [tls_private_key.pushbutton]
+  account_key_pem = tls_private_key.pushbutton.private_key_pem
+  email_address   = var.lets_encrypt_email
 }
+

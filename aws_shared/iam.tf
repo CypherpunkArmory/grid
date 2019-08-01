@@ -9,7 +9,7 @@ data "aws_iam_policy" "developers" {
 }
 
 data "aws_iam_policy" "change_password" {
- arn = "arn:aws:iam::aws:policy/IAMUserChangePassword"
+  arn = "arn:aws:iam::aws:policy/IAMUserChangePassword"
 }
 
 data "aws_iam_policy" "dynamo_db" {
@@ -17,7 +17,8 @@ data "aws_iam_policy" "dynamo_db" {
 }
 
 ##### Get#### current account id
-data "aws_caller_identity" "current" {}
+data "aws_caller_identity" "current" {
+}
 
 ########## AWS IAM GROUPS
 
@@ -31,23 +32,23 @@ resource "aws_iam_group" "developers" {
 }
 
 resource "aws_iam_group_policy_attachment" "developers_policy" {
-  group      = "${aws_iam_group.developers.name}"
-  policy_arn = "${data.aws_iam_policy.developers.arn}"
+  group      = aws_iam_group.developers.name
+  policy_arn = data.aws_iam_policy.developers.arn
 }
 
 resource "aws_iam_group_policy_attachment" "developers_admin_policy" {
-  group      = "${aws_iam_group.developers.name}"
-  policy_arn = "${data.aws_iam_policy.administrator.arn}"
+  group      = aws_iam_group.developers.name
+  policy_arn = data.aws_iam_policy.administrator.arn
 }
 
 resource "aws_iam_group_policy_attachment" "change_password_policy" {
-  group      = "${aws_iam_group.developers.name}"
-  policy_arn = "${data.aws_iam_policy.change_password.arn}"
+  group      = aws_iam_group.developers.name
+  policy_arn = data.aws_iam_policy.change_password.arn
 }
 
 resource "aws_iam_group_policy_attachment" "dynamo_db_access" {
-  group      = "${aws_iam_group.developers.name}"
-  policy_arn = "${data.aws_iam_policy.dynamo_db.arn}"
+  group      = aws_iam_group.developers.name
+  policy_arn = data.aws_iam_policy.dynamo_db.arn
 }
 
 resource "aws_iam_group" "robots" {
@@ -59,27 +60,26 @@ resource "aws_iam_group" "robots" {
 # Email
 resource "aws_iam_user" "emailer" {
   name = "emailer"
-  tags {
+  tags = {
     Substrate = "silicon"
   }
 }
 
 resource "aws_iam_user_group_membership" "emailer_user_groups" {
-  user = "${aws_iam_user.emailer.name}"
+  user = aws_iam_user.emailer.name
   groups = [
-    "${aws_iam_group.robots.name}"
+    aws_iam_group.robots.name,
   ]
 }
 
 resource "aws_iam_access_key" "emailer_key" {
-  user = "${aws_iam_user.emailer.name}"
+  user = aws_iam_user.emailer.name
 }
-
 
 resource "aws_iam_policy" "emailer" {
   description = "Permission Policy for sending email via SES"
-  name = "emailer"
-  policy = <<POLICY
+  name        = "emailer"
+  policy      = <<POLICY
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -91,25 +91,27 @@ resource "aws_iam_policy" "emailer" {
   ]
 }
 POLICY
+
 }
+
 resource "aws_iam_user_policy_attachment" "emailer_emailer_policy_attach" {
-  user = "${aws_iam_user.emailer.name}"
-  policy_arn = "${aws_iam_policy.emailer.arn}"
+  user       = aws_iam_user.emailer.name
+  policy_arn = aws_iam_policy.emailer.arn
 }
 
 # Cert Bot
 
 resource "aws_iam_user" "certbot" {
   name = "certbot"
-  tags {
+  tags = {
     Substrate = "silicon"
   }
 }
 
 resource "aws_iam_user_group_membership" "certbot_user_groups" {
-  user = "${aws_iam_user.certbot.name}"
+  user = aws_iam_user.certbot.name
   groups = [
-    "${aws_iam_group.robots.name}"
+    aws_iam_group.robots.name,
   ]
 }
 
@@ -117,26 +119,26 @@ resource "aws_iam_user_group_membership" "certbot_user_groups" {
 
 resource "aws_iam_user" "domoroboto" {
   name = "domoroboto"
-  tags {
+  tags = {
     Substrate = "silicon"
   }
 }
 
 resource "aws_iam_user_group_membership" "domoroboto_user_groups" {
-  user = "${aws_iam_user.domoroboto.name}"
+  user = aws_iam_user.domoroboto.name
   groups = [
-    "${aws_iam_group.robots.name}"
+    aws_iam_group.robots.name,
   ]
 }
 
 resource "aws_iam_access_key" "domoroboto_key" {
-  user = "${aws_iam_user.domoroboto.name}"
+  user = aws_iam_user.domoroboto.name
 }
 
 resource "aws_iam_policy" "domoroboto" {
   description = "Permission policy for the deploy robot"
-  name = "domoroboto"
-  policy = <<POLICY
+  name        = "domoroboto"
+  policy      = <<POLICY
 {
    "Version":"2012-10-17",
    "Statement":[
@@ -182,19 +184,20 @@ resource "aws_iam_policy" "domoroboto" {
    ]
 }
 POLICY
+
 }
 
 resource "aws_iam_user_policy_attachment" "roboto_policy_attach" {
-  user = "${aws_iam_user.domoroboto.name}"
-  policy_arn = "${aws_iam_policy.domoroboto.arn}"
+  user       = aws_iam_user.domoroboto.name
+  policy_arn = aws_iam_policy.domoroboto.arn
 }
 
 ###### Shared City Policy
 
 resource "aws_iam_policy" "city_host" {
   description = "Role policy for City Hosts"
-  name = "CityHostPolicy"
-  policy = <<POLICY
+  name        = "CityHostPolicy"
+  policy      = <<POLICY
 {
    "Version":"2012-10-17",
    "Statement":[
@@ -216,6 +219,7 @@ resource "aws_iam_policy" "city_host" {
    ]
 }
 POLICY
+
 }
 
 ###### City Hosts
@@ -235,19 +239,19 @@ resource "aws_iam_role" "city_host" {
    ]
 }
 ASSUME
+
 }
+
 # Attach global city policy
 resource "aws_iam_role_policy_attachment" "city_host_policy_attach" {
-  role = "${aws_iam_role.city_host.name}"
-  policy_arn = "${aws_iam_policy.city_host.arn}"
+  role       = aws_iam_role.city_host.name
+  policy_arn = aws_iam_policy.city_host.arn
 }
 
 resource "aws_iam_instance_profile" "city_host_profile" {
   name = "city_host_profile"
-  role = "${aws_iam_role.city_host.name}"
+  role = aws_iam_role.city_host.name
 }
-
-
 
 ####### Load Balancer Hosts
 
@@ -266,20 +270,19 @@ resource "aws_iam_role" "lb_host" {
    ]
 }
 ASSUME
+
 }
+
 # Attach global city policy
 resource "aws_iam_role_policy_attachment" "lb_city_host_policy_attach" {
-  role = "${aws_iam_role.lb_host.name}"
-  policy_arn = "${aws_iam_policy.city_host.arn}"
+  role       = aws_iam_role.lb_host.name
+  policy_arn = aws_iam_policy.city_host.arn
 }
 
 resource "aws_iam_instance_profile" "lb_host_profile" {
   name = "lb_host_profile"
-  role = "${aws_iam_role.lb_host.name}"
+  role = aws_iam_role.lb_host.name
 }
-
-
-
 
 ####### DMZ host
 
@@ -298,23 +301,24 @@ resource "aws_iam_role" "dmz_host" {
    ]
 }
 ASSUME
+
 }
+
 # Attach global city policy
 resource "aws_iam_role_policy_attachment" "vault_dmz_role_policy_attach" {
-  role = "${aws_iam_role.dmz_host.name}"
-  policy_arn = "${aws_iam_policy.city_host.arn}"
+  role       = aws_iam_role.dmz_host.name
+  policy_arn = aws_iam_policy.city_host.arn
 }
 
 resource "aws_iam_instance_profile" "dmz_host_profile" {
   name = "dmz_host_profile"
-  role = "${aws_iam_role.dmz_host.name}"
+  role = aws_iam_role.dmz_host.name
 }
-
 
 #Also attached city host to DMZ machine
 resource "aws_iam_role_policy_attachment" "vault_city_host_policy_attach" {
-  role = "${aws_iam_role.dmz_host.name}"
-  policy_arn = "${aws_iam_policy.city_host.arn}"
+  role       = aws_iam_role.dmz_host.name
+  policy_arn = aws_iam_policy.city_host.arn
 }
 
 ##########  Vault on DMZ host related
@@ -323,8 +327,8 @@ resource "aws_iam_role_policy_attachment" "vault_city_host_policy_attach" {
 #     for automated services that need to manage AWS.  Certbot etc.
 resource "aws_iam_policy" "vault_policy" {
   description = "Role policy for Vault AWS Secret Issuer"
-  name = "vault"
-  policy = <<POLICY
+  name        = "vault"
+  policy      = <<POLICY
 {
   "Version": "2012-10-17",
   "Id": "vault-aws secret issuer policy",
@@ -353,11 +357,12 @@ resource "aws_iam_policy" "vault_policy" {
   ]
 }
 POLICY
+
 }
 
 resource "aws_iam_role_policy_attachment" "dmz_vault_policy_attach" {
-  role = "${aws_iam_role.dmz_host.name}"
-  policy_arn = "${aws_iam_policy.vault_policy.arn}"
+  role       = aws_iam_role.dmz_host.name
+  policy_arn = aws_iam_policy.vault_policy.arn
 }
 
 ######  Certbot container jobs to update route53
@@ -366,8 +371,8 @@ resource "aws_iam_role_policy_attachment" "dmz_vault_policy_attach" {
 # It fails on the delte.  Perhaps using the same name was a mistake.
 resource "aws_iam_policy" "certbot" {
   description = "Permission Policy for Certbot Auto"
-  name = "certbot"
-  policy = <<POLICY
+  name        = "certbot"
+  policy      = <<POLICY
 {
   "Version": "2012-10-17",
   "Id": "certbot-dns-route53 sample policy",
@@ -394,12 +399,13 @@ resource "aws_iam_policy" "certbot" {
   ]
 }
 POLICY
+
 }
 
 resource "aws_iam_policy" "certbotpolicy" {
   description = "Permission Policy for Certbot Auto"
-  name = "certbot"
-  policy = <<POLICY
+  name        = "certbot"
+  policy      = <<POLICY
 {
   "Version": "2012-10-17",
   "Id": "certbot-dns-route53 sample policy",
@@ -426,9 +432,8 @@ resource "aws_iam_policy" "certbotpolicy" {
   ]
 }
 POLICY
+
 }
-
-
 
 resource "aws_iam_role" "certbot" {
   name               = "certbot"
@@ -445,14 +450,13 @@ resource "aws_iam_role" "certbot" {
    ]
 }
 ASSUME
+
 }
 
 resource "aws_iam_role_policy_attachment" "certbot_policy_attach" {
-  role  = "${aws_iam_role.certbot.name}"
-  policy_arn = "${aws_iam_policy.certbotpolicy.arn}"
+  role       = aws_iam_role.certbot.name
+  policy_arn = aws_iam_policy.certbotpolicy.arn
 }
-
-
 
 ########### Data dog configuration
 
@@ -542,11 +546,12 @@ resource "aws_iam_policy" "datadog" {
   ]
 }
 POLICY
+
 }
 
 resource "aws_iam_role" "datadog" {
-  name                  = "DatadogAWSIntegrationRole"
-  assume_role_policy    = <<ASSUME
+  name               = "DatadogAWSIntegrationRole"
+  assume_role_policy = <<ASSUME
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -565,6 +570,8 @@ resource "aws_iam_role" "datadog" {
   ]
 }
 ASSUME
+
+
   description           = "3rd Party role for Datadog External Integration"
   force_detach_policies = false
   max_session_duration  = 3600
@@ -572,6 +579,7 @@ ASSUME
 }
 
 resource "aws_iam_role_policy_attachment" "datadog_policy_attach" {
-  role       = "${aws_iam_role.datadog.name}"
-  policy_arn = "${aws_iam_policy.datadog.arn}"
+  role       = aws_iam_role.datadog.name
+  policy_arn = aws_iam_policy.datadog.arn
 }
+

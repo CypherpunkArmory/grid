@@ -2,7 +2,6 @@
 #   bucket = "city-amis"
 #   region = "us-west-2"
 #   acl = "private"
-
 #   tags {
 #     Name = "Userland City AMIs"
 #     District = "city"

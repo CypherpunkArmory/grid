@@ -21,17 +21,17 @@ resource "aws_db_instance" "city_rds" {
   final_snapshot_identifier = "${local.db_identifier}-final"
   copy_tags_to_snapshot = "${ terraform.workspace == "prod" ? true : false }"
   # change this to restor prod from latest
-  snapshot_identifier = "${ terraform.workspace == "prod" ? "rds:city-db-prod-2019-05-15-00-25" : data.aws_db_snapshot.latest_prod_snapshot.id }"
-   vpc_security_group_ids = [
-     "${ aws_security_group.city_servers.id }",
-   ]
+  # snapshot_identifier = "${ data.aws_db_snapshot.latest_prod_snapshot.id }"
+  #  vpc_security_group_ids = [
+  #    "${ aws_security_group.city_servers.id }",
+  #  ]
 
   snapshot_identifier = "${ terraform.workspace == "prod" ? "rds:city-db-prod-2019-05-15-00-25" : data.aws_db_snapshot.latest_prod_snapshot.id }"
   vpc_security_group_ids = [
     "${ aws_security_group.city_servers.id }",
   ]
 
-  tags {
+  tags = {
     District = "city"
     Usage = "app"
     Name = "city_db"
@@ -48,7 +48,7 @@ resource "aws_db_subnet_group" "city_db" {
     "${aws_subnet.city_private_subnet.id}"
   ]
 
-  tags {
+  tags = {
     District = "city"
     Usage = "db"
     Environment = "${terraform.workspace}"
@@ -61,7 +61,7 @@ resource "aws_subnet" "city_backup_subnet" {
   map_public_ip_on_launch = true
   availability_zone = "us-west-2c"
 
-  tags {
+  tags = {
     District = "city"
     Usage = "infra"
     Role = "db"

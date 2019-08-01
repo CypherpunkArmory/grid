@@ -1,35 +1,36 @@
 locals {
   # Note the below uses the lb profile
-  tcplb_host_profile =  "${data.terraform_remote_state.aws_shared.lb_host_profile_name}"
-  tcplb_ami_id = "${var.tcplb_version == "most_recent" ? data.aws_ami.most_recent_tcplb_ami.id : data.aws_ami.particular_tcplb_ami.id}"
+  tcplb_host_profile = data.terraform_remote_state.aws_shared.outputs.lb_host_profile_name
+  tcplb_ami_id       = var.tcplb_version == "most_recent" ? data.aws_ami.most_recent_tcplb_ami.id : data.aws_ami.particular_tcplb_ami.id
 }
 
 data "template_file" "city_tcplb_cloud_init" {
   template = "${file("${path.module}/cloud-init/city_tcplb.yml")}"
-  vars {
+  vars = {
     hostname = "city-tcplb${terraform.workspace != "prod" ? terraform.workspace : ""}"
-    tcplb_district = "city" }
+    tcplb_district = "city" 
+    }
 }
 
 resource "aws_instance" "city_tcplb" {
-  ami                    = "${local.tcplb_ami_id}"
+  ami                    = local.tcplb_ami_id
   instance_type          = "t2.micro"
-  user_data              = "${data.template_file.city_tcplb_cloud_init.rendered}"
-  iam_instance_profile   = "${local.tcplb_host_profile}"
-  subnet_id              = "${aws_subnet.city_vpc_subnet.id}"
+  user_data              = data.template_file.city_tcplb_cloud_init.rendered
+  iam_instance_profile   = local.tcplb_host_profile
+  subnet_id              = aws_subnet.city_vpc_subnet.id
   monitoring             = true
-  vpc_security_group_ids = ["${aws_security_group.tcplb_servers.id}"]
+  vpc_security_group_ids = [aws_security_group.tcplb_servers.id]
 
   lifecycle {
     create_before_destroy = true
   }
 
-  tags {
+  tags = {
     District = "city"
     Usage    = "app"
     Name     = "city_tcplb${terraform.workspace != "prod" ? terraform.workspace : ""}"
     Role     = "tcplb"
-    Environment = "${terraform.workspace}"
+    Environment = terraform.workspace
   }
 
   depends_on = ["aws_vpc.city_vpc", "aws_instance.dmz"]
@@ -40,7 +41,7 @@ resource "aws_instance" "city_tcplb" {
     source      = "${var.output_directory}/${terraform.workspace}/vault_recovery"
     destination = "/home/alan/vault_recovery"
     connection {
-      host = "${self.public_ip}"
+      host = self.public_ip
       type = "ssh"
       user = "alan"
     }
@@ -48,10 +49,10 @@ resource "aws_instance" "city_tcplb" {
 
   # Load the ssh config script
   provisioner "file" {
-    source      = "PostBootConfig/vault_ssh_host_keys"
+    source      = "post_boot_config/vault_ssh_host_keys"
     destination = "/home/alan/vault_ssh_host_keys"
     connection {
-      host = "${self.public_ip}"
+      host = self.public_ip
       type = "ssh"
       user = "alan"
     }
@@ -68,7 +69,7 @@ resource "aws_instance" "city_tcplb" {
       "sudo systemctl restart ssh",
     ]
     connection {
-      host = "${self.public_ip}"
+      host = self.public_ip
       type = "ssh"
       user = "alan"
     }
@@ -80,6 +81,7 @@ resource "aws_instance" "city_tcplb" {
     source      = "post_boot_config/fabio/files/fabio.conf"
     destination = "/home/alan/fabio.conf"
     connection {
+      host = coalesce(self.public_ip, self.private_ip)
       type = "ssh"
       user = "alan"
     }
@@ -101,6 +103,7 @@ resource "aws_instance" "city_tcplb" {
       "sudo systemctl status fabio.service",
     ]
     connection {
+      host = coalesce(self.public_ip, self.private_ip)
       type = "ssh"
       user = "alan"
     }

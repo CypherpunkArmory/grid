@@ -8,7 +8,7 @@ terraform {
 
 data "terraform_remote_state" "aws_shared" {
   backend = "s3"
-  config {
+  config = {
     bucket = "userland.tech.terraform"
     key = "aws_shared.tfstate"
     region = "us-west-2"

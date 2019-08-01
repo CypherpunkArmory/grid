@@ -8,7 +8,8 @@ resource "aws_vpc" "city_vpc" {
   enable_dns_support               = true
   instance_tenancy                 = "default"
 
-  tags {
+  tags = {
+    Name = "${terraform.workspace}"
     District = "city"
     Usage = "app"
     Environment = "${terraform.workspace}"
@@ -25,7 +26,7 @@ resource "aws_subnet" "city_vpc_subnet" {
   map_public_ip_on_launch = true
   availability_zone = "us-west-2b"
 
-  tags {
+  tags = {
     District = "city"
     Environment = "${terraform.workspace}"
   }
@@ -37,7 +38,7 @@ resource "aws_subnet" "city_private_subnet" {
   cidr_block = "172.31.3.0/24"
   availability_zone = "us-west-2b"
 
-  tags {
+  tags = {
     District = "city"
     Usage = "app"
     Environment = "${terraform.workspace}"
@@ -50,7 +51,7 @@ resource "aws_subnet" "city_private_subnet" {
 resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.city_vpc.id}"
 
-  tags {
+  tags = {
     District = "city"
     Usage = "app"
     Environment = "${terraform.workspace}"
@@ -127,7 +128,7 @@ resource "aws_eip" "city_lb_ip" {
 
   depends_on = ["aws_internet_gateway.gw"]
 
-  tags {
+  tags = {
     District = "city"
     Usage = "app"
     Role = "lb"
@@ -142,7 +143,7 @@ resource "aws_eip" "city_tcplb_ip" {
 
   depends_on = ["aws_internet_gateway.gw"]
 
-  tags {
+  tags = {
     District = "city"
     Usage = "app"
     Role = "lb"
@@ -157,7 +158,7 @@ resource "aws_eip" "dmz_ip" {
 
   depends_on = ["aws_internet_gateway.gw"]
 
-  tags {
+  tags = {
     District = "dmz"
     Usage = "infra"
     Role = "vpn"

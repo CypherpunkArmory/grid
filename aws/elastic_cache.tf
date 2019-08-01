@@ -13,7 +13,7 @@ resource "aws_elasticache_cluster" "holepunch-redis" {
 
   port = 6379
 
-  tags {
+  tags = {
     District = "city"
     Usage = "app"
     Name = "city_redis"

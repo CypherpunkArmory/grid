@@ -3,3 +3,4 @@ resource "github_team" "userland" {
   description = "UserLAnd Development Team"
   privacy     = "closed"
 }
+

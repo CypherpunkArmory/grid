@@ -1,13 +1,14 @@
 locals {
-  lb_host_profile =  "${data.terraform_remote_state.aws_shared.lb_host_profile_name}"
-  lb_ami_id = "${var.lb_version == "most_recent" ? data.aws_ami.most_recent_lb_ami.id : data.aws_ami.particular_lb_ami.id}"
+  lb_host_profile = data.terraform_remote_state.aws_shared.outputs.lb_host_profile_name
+  lb_ami_id       = var.lb_version == "most_recent" ? data.aws_ami.most_recent_lb_ami.id : data.aws_ami.particular_lb_ami.id
 }
 
 data "template_file" "city_lb_cloud_init" {
   template = "${file("${path.module}/cloud-init/city_lb.yml")}"
-  vars {
+  vars = {
     hostname = "city-lb${terraform.workspace != "prod" ? terraform.workspace : ""}"
-    lb_district = "city" }
+    lb_district = "city" 
+    }
 }
 
 resource "aws_instance" "city_lb" {

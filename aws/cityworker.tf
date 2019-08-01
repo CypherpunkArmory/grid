@@ -1,14 +1,14 @@
 locals {
- # Note the below uses the city profile
-  cityworker_host_profile = "${data.terraform_remote_state.aws_shared.city_host_profile_name}"
-  cityworker_ami_id = "${var.cityworker_version == "most_recent" ? data.aws_ami.most_recent_cityworker_ami.id : data.aws_ami.particular_cityworker_ami.id}"
-  cityworker_version = "${var.cityworker_version == "most_recent" ? data.aws_ami.most_recent_cityworker_ami.tags["Version"] : data.aws_ami.particular_cityworker_ami.tags["Version"]}"
+ # Note the below uses the city host profile
+ cityworker_host_profile = data.terraform_remote_state.aws_shared.outputs.city_host_profile_name
+ cityworker_ami_id       = var.cityworker_version == "most_recent" ? data.aws_ami.most_recent_cityworker_ami.id : data.aws_ami.particular_cityworker_ami.id
+ cityworker_version      = var.cityworker_version == "most_recent" ? data.aws_ami.most_recent_cityworker_ami.tags["Version"] : data.aws_ami.particular_cityworker_ami.tags["Version"]
 }
 
 data "template_file" "cityworker_cloud_init" {
   count = "${var.cityworker_hosts}"
   template = "${file("${path.module}/cloud-init/cityworker_host.yml")}"
-  vars {
+  vars = {
     hostname = "${format("cityworker%01d", count.index + 1)}-${replace(local.cityworker_version, ".", "")}${terraform.workspace != "prod" ? terraform.workspace : ""}"
     cityworker_hosts = "${var.cityworker_hosts}"
     # FIXME When HCL2 / TF 0.12 come out we should interpolate the
@@ -29,9 +29,9 @@ resource "aws_instance" "cityworker_host" {
 
 
   lifecycle {
-    create_before_destroy = 1
+    create_before_destroy = true
   }
-tags {
+tags = {
     District = "city"
     Usage = "app"
     Name = "${format("cityworker%01d", count.index + 1)}-${replace(local.cityworker_version, ".", "")}${terraform.workspace != "prod" ? terraform.workspace : ""}"
