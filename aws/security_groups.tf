@@ -1,23 +1,23 @@
 resource "aws_security_group" "city_servers" {
   name        = "city-${terraform.workspace}"
-  vpc_id      = "${aws_vpc.city_vpc.id}"
+  vpc_id      = aws_vpc.city_vpc.id
   description = "Allow SSH / HTTP / HTTP(s) traffic to City"
 
   tags = {
-    District = "city"
-    Usage = "app"
-    Environment = "${terraform.workspace}"
+    District    = "city"
+    Usage       = "app"
+    Environment = terraform.workspace
   }
 }
 
 resource "aws_security_group" "dmz_server" {
   name        = "dmz-${terraform.workspace}"
-  vpc_id      = "${aws_vpc.city_vpc.id}"
+  vpc_id      = aws_vpc.city_vpc.id
   description = "Allow UDP OpenVPN traffic to DMZ"
 
   tags = {
-    District = "dmz"
-    Environment = "${terraform.workspace}"
+    District    = "dmz"
+    Environment = terraform.workspace
   }
 }
 
@@ -27,7 +27,7 @@ resource "aws_security_group_rule" "allow_all" {
   to_port           = 0
   protocol          = "-1"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = "${aws_security_group.city_servers.id}"
+  security_group_id = aws_security_group.city_servers.id
 }
 
 resource "aws_security_group_rule" "allow_postgres" {
@@ -36,7 +36,7 @@ resource "aws_security_group_rule" "allow_postgres" {
   to_port           = 5432
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = "${aws_security_group.city_servers.id}"
+  security_group_id = aws_security_group.city_servers.id
 }
 
 
@@ -46,7 +46,7 @@ resource "aws_security_group_rule" "allow_http" {
   to_port           = 80
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = "${aws_security_group.city_servers.id}"
+  security_group_id = aws_security_group.city_servers.id
 }
 
 resource "aws_security_group_rule" "allow_https" {
@@ -55,7 +55,7 @@ resource "aws_security_group_rule" "allow_https" {
   to_port           = 443
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = "${aws_security_group.city_servers.id}"
+  security_group_id = aws_security_group.city_servers.id
 }
 
 resource "aws_security_group_rule" "allow_ssh" {
@@ -64,7 +64,7 @@ resource "aws_security_group_rule" "allow_ssh" {
   to_port           = 22
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = "${aws_security_group.city_servers.id}"
+  security_group_id = aws_security_group.city_servers.id
 }
 
 resource "aws_security_group_rule" "subnet_allow_all" {
@@ -73,7 +73,7 @@ resource "aws_security_group_rule" "subnet_allow_all" {
   to_port           = 0
   protocol          = "-1"
   cidr_blocks       = ["172.31.0.0/16", "172.16.0.0/16"]
-  security_group_id = "${aws_security_group.city_servers.id}"
+  security_group_id = aws_security_group.city_servers.id
 }
 
 resource "aws_security_group_rule" "allow_vpn" {
@@ -82,18 +82,18 @@ resource "aws_security_group_rule" "allow_vpn" {
   to_port           = 1194
   protocol          = "udp"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = "${aws_security_group.dmz_server.id}"
+  security_group_id = aws_security_group.dmz_server.id
 }
 
 resource "aws_security_group" "tcplb_servers" {
   name        = "tcplb-${terraform.workspace}"
-  vpc_id      = "${aws_vpc.city_vpc.id}"
+  vpc_id      = aws_vpc.city_vpc.id
   description = "Allow 22 internal, and 10,000-25,000 for user tcp ports"
 
   tags = {
     District = "city"
     Usage = "app"
-    Environment = "${terraform.workspace}"
+    Environment = terraform.workspace
   }
 }
 
@@ -103,7 +103,7 @@ resource "aws_security_group_rule" "allow_all_tcp" {
   to_port           = 0
   protocol          = "-1"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = "${aws_security_group.tcplb_servers.id}"
+  security_group_id = aws_security_group.tcplb_servers.id
 }
 
 resource "aws_security_group_rule" "subnet_allow_ssh" {
@@ -112,7 +112,7 @@ resource "aws_security_group_rule" "subnet_allow_ssh" {
   to_port           = 22
   protocol          = "tcp"
   cidr_blocks       = ["172.31.0.0/16", "172.16.0.0/16"]
-  security_group_id = "${aws_security_group.tcplb_servers.id}"
+  security_group_id = aws_security_group.tcplb_servers.id
 }
 
 resource "aws_security_group_rule" "subnet_public_ssh" {
@@ -121,7 +121,7 @@ resource "aws_security_group_rule" "subnet_public_ssh" {
   to_port           = 22
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = "${aws_security_group.tcplb_servers.id}"
+  security_group_id = aws_security_group.tcplb_servers.id
 }
 
 resource "aws_security_group_rule" "allow_tcp_ports" {
@@ -130,5 +130,5 @@ resource "aws_security_group_rule" "allow_tcp_ports" {
   to_port           = 25000
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = "${aws_security_group.tcplb_servers.id}"
+  security_group_id = aws_security_group.tcplb_servers.id
 }

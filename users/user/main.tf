@@ -36,5 +36,4 @@ resource "datadog_user" "user" {
   handle = "${local.username}"
   name = "${var.name}"
   access_role = "adm"
-  is_admin = "true"
 }

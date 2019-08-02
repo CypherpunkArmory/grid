@@ -9,10 +9,10 @@ resource "aws_vpc" "city_vpc" {
   instance_tenancy                 = "default"
 
   tags = {
-    Name = "${terraform.workspace}"
-    District = "city"
-    Usage = "app"
-    Environment = "${terraform.workspace}"
+    Name        = terraform.workspace
+    District    = "city"
+    Usage       = "app"
+    Environment = terraform.workspace
   }
 }
 
@@ -21,27 +21,29 @@ resource "aws_vpc" "city_vpc" {
 
 # Put PUBLIC SERVERS in this subnet
 resource "aws_subnet" "city_vpc_subnet" {
-  vpc_id = "${aws_vpc.city_vpc.id}"
-  cidr_block = "172.31.1.0/24"
+  vpc_id                  = aws_vpc.city_vpc.id
+  cidr_block              = "172.31.1.0/24"
   map_public_ip_on_launch = true
-  availability_zone = "us-west-2b"
+  availability_zone       = "us-west-2b"
 
   tags = {
-    District = "city"
-    Environment = "${terraform.workspace}"
+    Name        = "${terraform.workspace}-city"
+    District    = "city"
+    Environment = terraform.workspace
   }
 }
 
 #Put PRIVATE SERVERS in this subnet
 resource "aws_subnet" "city_private_subnet" {
-  vpc_id = "${aws_vpc.city_vpc.id}"
-  cidr_block = "172.31.3.0/24"
-  availability_zone = "us-west-2b"
+  vpc_id                  = aws_vpc.city_vpc.id
+  cidr_block              = "172.31.3.0/24"
+  availability_zone       = "us-west-2b"
 
   tags = {
-    District = "city"
-    Usage = "app"
-    Environment = "${terraform.workspace}"
+    Name        = "${terraform.workspace}-servers"
+    District    = "city"
+    Usage       = "app"
+    Environment = terraform.workspace
   }
 }
 
@@ -52,9 +54,10 @@ resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.city_vpc.id}"
 
   tags = {
-    District = "city"
-    Usage = "app"
-    Environment = "${terraform.workspace}"
+    Name        = terraform.workspace
+    District    = "city"
+    Usage       = "app"
+    Environment = terraform.workspace
   }
 }
 
@@ -62,31 +65,31 @@ resource "aws_internet_gateway" "gw" {
 # Default Route Table for VPC in the 172.31.1.0/24 CIDR Range (Servers)
 
 resource "aws_route_table" "city_route_table" {
-  vpc_id = "${aws_vpc.city_vpc.id}"
+  vpc_id = aws_vpc.city_vpc.id
 
   tags = {
-    Name = "city_public"
-    District = "city"
-    Usage = "infra"
-    Environment = "${terraform.workspace}"
+    Name        = "${terraform.workspace}-city_public"
+    District    = "city"
+    Usage       = "infra"
+    Environment = terraform.workspace
   }
 }
 
 resource "aws_route" "default_route" {
-  route_table_id = "${aws_route_table.city_route_table.id}"
-  destination_cidr_block = "0.0.0.0/0"
-  gateway_id = "${aws_internet_gateway.gw.id}"
+  route_table_id          = aws_route_table.city_route_table.id
+  destination_cidr_block  = "0.0.0.0/0"
+  gateway_id              = aws_internet_gateway.gw.id
 }
 
 resource "aws_route" "vpn_route" {
-  route_table_id = "${aws_route_table.city_route_table.id}"
-  destination_cidr_block = "172.16.0.0/16"
-  instance_id = "${aws_instance.dmz.id}"
+  route_table_id          = aws_route_table.city_route_table.id
+  destination_cidr_block  = "172.16.0.0/16"
+  instance_id             = aws_instance.dmz.id
 }
 
 resource "aws_main_route_table_association" "city_main_route" {
-  vpc_id         = "${aws_vpc.city_vpc.id}"
-  route_table_id = "${aws_route_table.city_route_table.id}"
+  vpc_id         = aws_vpc.city_vpc.id
+  route_table_id = aws_route_table.city_route_table.id
 }
 
 # Default Route Table for the Private Subnet for Lambda
@@ -95,73 +98,73 @@ resource "aws_route_table" "private_route_table" {
   vpc_id = "${aws_vpc.city_vpc.id}"
 
   tags = {
-    Name = "city_private"
-    District = "city"
-    Usage = "app"
-    Environment = "${terraform.workspace}"
+    Name        = "${terraform.workspace}-city_private"
+    District    = "city"
+    Usage       = "app"
+    Environment = terraform.workspace
   }
 }
 
 resource "aws_route" "private_route" {
-  route_table_id = "${aws_route_table.private_route_table.id}"
-  destination_cidr_block = "0.0.0.0/0"
-  instance_id = "${aws_instance.dmz.id}"
+  route_table_id          = aws_route_table.private_route_table.id
+  destination_cidr_block  = "0.0.0.0/0"
+  instance_id             = aws_instance.dmz.id
 }
 
 resource "aws_route" "private_vpn_route" {
-  route_table_id = "${aws_route_table.private_route_table.id}"
-  destination_cidr_block = "172.16.0.0/16"
-  instance_id = "${aws_instance.dmz.id}"
+  route_table_id          = aws_route_table.private_route_table.id
+  destination_cidr_block  = "172.16.0.0/16"
+  instance_id             = aws_instance.dmz.id
 }
 
 resource "aws_route_table_association" "city_private_subnet_route" {
-  subnet_id      = "${aws_subnet.city_private_subnet.id}"
-  route_table_id = "${aws_route_table.private_route_table.id}"
+  subnet_id      = aws_subnet.city_private_subnet.id
+  route_table_id = aws_route_table.private_route_table.id
 }
 
 # Elastic IPS - Only in prod
 
 resource "aws_eip" "city_lb_ip" {
-  count = "${terraform.workspace == "prod" ? 1 : 0}"
-  instance = "${aws_instance.city_lb.id}"
-  vpc = true
+  count     = terraform.workspace == "prod" ? 1 : 0
+  instance  = aws_instance.city_lb.id
+  vpc       = true
 
   depends_on = ["aws_internet_gateway.gw"]
 
   tags = {
-    District = "city"
-    Usage = "app"
-    Role = "lb"
-    Environment = "${terraform.workspace}"
+    District    = "city"
+    Usage       = "app"
+    Role        = "lb"
+    Environment = terraform.workspace
   }
 }
 
 resource "aws_eip" "city_tcplb_ip" {
-  count = "${terraform.workspace == "prod" ? 1 : 0}"
-  instance = "${aws_instance.city_tcplb.id}"
-  vpc = true
+  count         = terraform.workspace == "prod" ? 1 : 0
+  instance      = aws_instance.city_tcplb.id
+  vpc           = true
 
   depends_on = ["aws_internet_gateway.gw"]
 
   tags = {
-    District = "city"
-    Usage = "app"
-    Role = "lb"
-    Environment = "${terraform.workspace}"
+    District    = "city"
+    Usage       = "app"
+    Role        = "lb"
+    Environment = terraform.workspace
   }
 }
 
 resource "aws_eip" "dmz_ip" {
-  count = "${terraform.workspace == "prod" ? 1 : 0}"
-  instance = "${aws_instance.dmz.id}"
-  vpc = true
+  count     = terraform.workspace == "prod" ? 1 : 0
+  instance  = aws_instance.dmz.id
+  vpc       = true
 
   depends_on = ["aws_internet_gateway.gw"]
 
   tags = {
-    District = "dmz"
-    Usage = "infra"
-    Role = "vpn"
-    Environment = "${terraform.workspace}"
+    District    = "dmz"
+    Usage       = "infra"
+    Role        = "vpn"
+    Environment = terraform.workspace
   }
 }

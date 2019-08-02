@@ -1,5 +1,6 @@
 
-data "aws_caller_identity" "current" {}
+data "aws_caller_identity" "current" {  
+}
 
 resource "aws_dynamodb_table" "vault-secrets" {
   name           = "vault-secrets-${terraform.workspace}"
@@ -11,7 +12,7 @@ resource "aws_dynamodb_table" "vault-secrets" {
   range_key      = "Key"
 
   point_in_time_recovery {
-    enabled = "${terraform.workspace == "prod" ? true : false}"
+    enabled = terraform.workspace == "prod" ? true : false
   }
 
   attribute {
@@ -29,6 +30,6 @@ resource "aws_dynamodb_table" "vault-secrets" {
     Usage       = "infra"
     Name        = "city_vault"
     Role        = "db"
-    Environment = "${terraform.workspace}"
+    Environment = terraform.workspace
   }
 }

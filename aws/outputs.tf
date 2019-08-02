@@ -7,5 +7,5 @@ output "database_endpoint" {
 }
 
 output "tcp_lb_endpoint" {
-  value = "${aws_instance.city_tcplb.private_ip}"
+  value = aws_instance.city_tcplb.private_ip
 }

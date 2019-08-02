@@ -9,33 +9,33 @@ locals {
 
 
 resource "aws_route53_record" "dmz_wildcard" {
-  zone_id = "${local.dmz_zone}"
-  name = "*.${local.dmz_domain}"
-  type = "A"
-  ttl = 300
-  records = ["${terraform.workspace == "prod" ? join("",aws_eip.dmz_ip.*.public_ip) : aws_instance.dmz.public_ip}"]
+  zone_id   = local.dmz_zone
+  name      = "*.${local.dmz_domain}"
+  type      = "A"
+  ttl       = 300
+  records   = [terraform.workspace == "prod" ? join("",aws_eip.dmz_ip.*.public_ip) : aws_instance.dmz.public_ip]
 }
 
 resource "aws_route53_record" "api_dns" {
-  zone_id = "${local.api_zone}"
-  name = "api.${local.api_domain}"
-  type = "A"
-  ttl = "300"
-  records = ["${terraform.workspace == "prod" ? join("", aws_eip.city_lb_ip.*.public_ip) : aws_instance.city_lb.public_ip}"]
+  zone_id   = local.api_zone
+  name      = "api.${local.api_domain}"
+  type      = "A"
+  ttl       = "300"
+  records   = [terraform.workspace == "prod" ? join("", aws_eip.city_lb_ip.*.public_ip) : aws_instance.city_lb.public_ip]
 }
 
 resource "aws_route53_record" "lb_wildcard" {
-  zone_id = "${local.api_zone}"
+  zone_id = local.api_zone
   name = "*.${local.api_domain}"
   type = "A"
   ttl = "300"
-  records = ["${terraform.workspace == "prod" ? join("", aws_eip.city_lb_ip.*.public_ip) : aws_instance.city_lb.public_ip}"]
+  records = [terraform.workspace == "prod" ? join("", aws_eip.city_lb_ip.*.public_ip) : aws_instance.city_lb.public_ip]
 }
 
 resource "aws_route53_record" "tcplb" {
-  zone_id = "${local.api_zone}"
+  zone_id = local.api_zone
   name = "tcp.${local.api_domain}"
   type = "A"
   ttl = "300"
-  records = ["${terraform.workspace == "prod" ? join("", aws_eip.city_tcplb_ip.*.public_ip) : aws_instance.city_tcplb.public_ip}"]
+  records = [terraform.workspace == "prod" ? join("", aws_eip.city_tcplb_ip.*.public_ip) : aws_instance.city_tcplb.public_ip]
 }
