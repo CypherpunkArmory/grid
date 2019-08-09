@@ -1,8 +1,5 @@
 #cloud-config
 ---
-manage_etc_hosts: localhost
-hostname: ${hostname}
-
 system_info:
   default_user:
     name: alan
@@ -21,3 +18,8 @@ write_files:
       gh:MatthewTighe
       gh:luongthomas
       gh:xophere
+
+runcmd:
+  - sed -i 's/APPLICATION/${application}/' /etc/consul-template.d/templates/nomad.hcl.ctmpl
+  - sed -i 's/APPLICATION/${application}/' /etc/nomad.hcl
+  - systemctl restart nomad

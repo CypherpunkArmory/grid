@@ -1,6 +1,10 @@
 job "holepunch" {
   datacenters = ["city"]
-
+  constraint {
+        attribute = "$${meta.app}"
+        operator  = "="
+        value     = "api"
+  }
   vault {
     policies = ["holepunch-policy"]
 
