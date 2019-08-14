@@ -13,5 +13,5 @@ variable "cityworker_holepunch_hosts" {
 }
 
 variable "cityworker_userland_hosts" {
-  default = 0
+  default = 1
 }
