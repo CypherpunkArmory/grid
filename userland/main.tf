@@ -72,7 +72,7 @@ variable "hook" {
 }
 
 locals {
-  api_domain                       = terraform.workspace == "prod" ? "userland.io" : join(".", [terraform.workspace, "orbtestenv.net"])
+  api_domain                       = terraform.workspace == "prod" ? "userland.tech" : join(".", [terraform.workspace, "orbtestenv.net"])
   ssh_deploy_version_default       = coalesce(var.ssh_deploy_version, "develop")
   userland_deploy_version_default = coalesce(var.userland_deploy_version, "develop")
   account_key_pem                  = data.terraform_remote_state.aws_shared.outputs.acme_registration_private_key
@@ -120,7 +120,7 @@ resource "acme_certificate" "orbtestenv_certificate" {
 resource "acme_certificate" "userlandio_certificate" {
   count              = terraform.workspace == "prod" ? 1 : 0
   account_key_pem    = local.account_key_pem
-  common_name        = "api.userland.io"
+  common_name        = "api.userland.tech"
   min_days_remaining = 30
 
   dns_challenge {
