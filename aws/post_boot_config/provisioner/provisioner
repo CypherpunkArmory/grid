@@ -28,7 +28,7 @@ while ! timeout --preserve-status 10 bash -c ">/dev/tcp/localhost/8200 &>/dev/nu
 done
 
 if vault status -address=http://127.0.0.1:8200 |\
-                      awk  '/Initialized/ { print $2 }'| grep false; then
+                      awk  '/Initialized/ { print $2 }'| grep false >/dev/null 2>&1; then
     vault operator init -address=http://127.0.0.1:8200> /home/alan/vault_recovery
 fi
 

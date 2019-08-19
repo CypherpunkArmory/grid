@@ -1,6 +1,5 @@
 locals {
   dmz_host_profile    = data.terraform_remote_state.aws_shared.outputs.dmz_host_profile_name
-  openvpn_conf        = "${var.output_directory}/${terraform.workspace}/openvpn_server_${terraform.workspace}.conf"
   dmz_ami_id          = var.dmz_version == "most_recent" ? data.aws_ami.most_recent_dmz_ami.id : data.aws_ami.particular_dmz_ami.id
   vault_recovery_file = "${var.output_directory}/${terraform.workspace}/vault_recovery"
 }
@@ -74,21 +73,25 @@ resource "aws_instance" "dmz" {
   provisioner "local-exec" {
     command =   <<EOT
       ls  ${var.output_directory}/${terraform.workspace}>/dev/null 2>&1;
-      if ! [ $? = 0 ]; then 
+      if ! [ $? = 0 ]; then
         mkdir ${var.output_directory}/${terraform.workspace}
+      fi
+      ls  ${local.vault_recovery_file}>/dev/null 2>&1;
+      if ! [ $? = 0 ]; then
+        touch ${local.vault_recovery_file}
       fi
    EOT
   }
 
-  # provisioner "file" {
-  #   source      = fileexists(local.vault_recovery_file) ?  local.vault_recovery_file : "./post_boot_config/vault_recovery_blank"
-  #   destination = "/home/alan/vault_recovery"
-  #   connection {
-  #     host = self.public_ip
-  #     type = "ssh"
-  #     user = "alan"
-  #   }
-  # }
+  provisioner "file" {
+     source      = local.vault_recovery_file
+     destination = "/home/alan/vault_recovery"
+     connection {
+       host = self.public_ip
+       type = "ssh"
+       user = "alan"
+     }
+  }
 
   # Copy up the template files to the instance
   provisioner "file" {
