@@ -35,46 +35,6 @@ resource "aws_instance" "city_tcplb" {
 
   depends_on = ["aws_vpc.city_vpc", "aws_instance.dmz"]
 
-    # Load the vault token
-
-  provisioner "file" {
-    source      = "${var.output_directory}/${terraform.workspace}/vault_recovery"
-    destination = "/home/alan/vault_recovery"
-    connection {
-      host = self.public_ip
-      type = "ssh"
-      user = "alan"
-    }
-  }
-
-  # Load the ssh config script
-  provisioner "file" {
-    source      = "post_boot_config/vault_ssh_host_keys"
-    destination = "/home/alan/vault_ssh_host_keys"
-    connection {
-      host = self.public_ip
-      type = "ssh"
-      user = "alan"
-    }
-  }
-  # Run the config script and remove the vault key and restart ssh
-
-  provisioner "remote-exec" {
-    when = "create"
-    inline = [
-      "chmod +x /home/alan/vault_ssh_host_keys",
-      "sudo /home/alan/vault_ssh_host_keys",
-      "rm /home/alan/vault_recovery",
-      "rm /home/alan/vault_ssh_host_keys",
-      "sudo systemctl restart ssh",
-    ]
-    connection {
-      host = self.public_ip
-      type = "ssh"
-      user = "alan"
-    }
-  }
-
   # Overwrite the standard fabio config on the node image
 
   provisioner "file" {
