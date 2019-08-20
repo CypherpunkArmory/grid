@@ -21,5 +21,6 @@ write_files:
 
 runcmd:
   - sed -i 's/APPLICATION/${application}/' /etc/consul-template.d/templates/nomad.hcl.ctmpl
+  - systemctl restart consul-template
   - sed -i 's/APPLICATION/${application}/' /etc/nomad.hcl
   - systemctl restart nomad
