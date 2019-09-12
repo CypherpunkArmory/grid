@@ -125,7 +125,7 @@ EOH
 
       resources {
         cpu = 250
-        memory = 100
+        memory = 200
         network {
           mbits = 1
         }
