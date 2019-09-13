@@ -47,7 +47,7 @@ provider "acme" {
   server_url = "https://acme-v02.api.letsencrypt.org/directory"
 }
 
-variable "ssh_deploy_version" {
+variable "box_deploy_version" {
   default = ""
 }
 
@@ -73,7 +73,7 @@ variable "hook" {
 
 locals {
   api_domain                       = terraform.workspace == "prod" ? "userland.tech" : join(".", [terraform.workspace, "orbtestenv.net"])
-  ssh_deploy_version_default       = coalesce(var.ssh_deploy_version, "develop")
+  box_deploy_version_default       = coalesce(var.box_deploy_version, "develop")
   userland_deploy_version_default = coalesce(var.userland_deploy_version, "develop")
   account_key_pem                  = data.terraform_remote_state.aws_shared.outputs.acme_registration_private_key
 }
@@ -96,8 +96,8 @@ resource "vault_generic_secret" "userland_secrets" {
   "MAIL_PASSWORD": "${data.terraform_remote_state.aws_shared.outputs.emailer_password}",
   "ROLLBAR_ENV": "${terraform.workspace}",
   "ROLLBAR_TOKEN": "${var.rollbar_token}",
-  "REDIS_URL":"${data.terraform_remote_state.aws.outputs.holepunch_redis_endpoint}",
-  "RQ_REDIS_URL": "${data.terraform_remote_state.aws.outputs.holepunch_redis_endpoint}",
+  "REDIS_URL":"${data.terraform_remote_state.aws.outputs.userland_redis_endpoint}",
+  "RQ_REDIS_URL": "${data.terraform_remote_state.aws.outputs.userland_redis_endpoint}",
   "MIN_CALVER": "${var.min_calver}",
   "STRIPE_KEY": "${terraform.workspace == "prod" ? var.stripe_key_prod : var.stripe_key_test}",
   "STRIPE_ENDPOINT": "https://api.stripe.com",

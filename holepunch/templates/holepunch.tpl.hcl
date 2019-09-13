@@ -54,7 +54,7 @@ EOH
       }
 
       service = {
-        name = "jobs-dash"
+        name = "jobs-dash-hp"
 
         port = "http"
 

@@ -54,12 +54,12 @@ EOH
       }
 
       service = {
-        name = "jobs-dash"
+        name = "jobs-dash-ula"
 
         port = "http"
 
         check {
-          name = "jobs-dash-up"
+          name = "jobs-dash-ula-up"
           port = "http"
           type = "http"
           path = "/"

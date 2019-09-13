@@ -5,13 +5,13 @@ variable "city_hosts" {
 
 
 variable "cityworker_api_hosts" {
-  default = 1
+  default = 2
 }
 
 variable "cityworker_holepunch_hosts" {
-  default = 1
+  default = 2
 }
 
 variable "cityworker_userland_hosts" {
-  default = 1
+  default = 2
 }
