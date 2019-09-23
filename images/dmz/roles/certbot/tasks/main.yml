@@ -1,0 +1,16 @@
+---
+- name: Install Certbot for this machine
+  block:
+    - command: add-apt-repository -y ppa:certbot/certbot
+    - command: apt update
+    - command: apt install certbot
+    - command: apt install python3-certbot-dns-route53
+
+- name: Create Certbot User
+  user:
+    name: certbot
+    shell: /usr/sbin/nologin
+    system: yes
+    createhome: yes
+
+- name: Install Certbot Renewal Service

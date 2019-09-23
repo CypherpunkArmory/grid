@@ -1,0 +1,13 @@
+[Unit]
+Description=Renew All Certificates
+After=network.target
+Requires=vault.service
+
+[Service]
+Type=oneshot
+User=cerbot
+ExecStart=/usr/bin/cert-bot-renew.sh
+StandardOutput=journal
+
+[Install]
+WantedBy=multi-user.target

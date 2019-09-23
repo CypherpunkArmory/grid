@@ -1,0 +1,13 @@
+#!/bin/bash
+# just using terraform template to load values into the shell run time.
+# Source by the provisioner script at run time.
+
+export TFWS=${tfworkspace}
+export KMSKEYID=${kms_key_id}
+export DD_API_KEY=${dd_api_key}
+export DOCKER_BOT_PASS=${docker_bot_pass}
+export CLUSTER_SIZE=${cluster_size}
+export GITHUB_ORG=${github_org}
+export DEV_TEAM=${dev_team}
+export VPN_DOMAIN=${vpn_domain}
+export AWS_ACCOUNT_ID=${aws_account_id}

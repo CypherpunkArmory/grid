@@ -1,0 +1,12 @@
+[Unit]
+Description=Obtain Vault Token
+After=network.target
+Before=nomad.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/vault-token.sh
+StandardOutput=journal
+
+[Install]
+WantedBy=multi-user.target

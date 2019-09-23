@@ -1,0 +1,79 @@
+#!/bin/bash
+#
+###############################################################################
+# CSCHAFER 7/11/2019
+#
+
+# Source variables from templated file from terraform
+
+. ~/openvpn_terraform_vars
+
+export VAULT_ADDR="http://127.0.0.1:8200"
+
+export VAULT_TOKEN=`awk -F ":" '/Initial Root Token/ { print $2 }' \
+  /home/alan/vault_recovery`
+
+
+apt-get  --assume-yes install wget
+
+wget  https://github.com/Luzifer/vault-openvpn/releases/download/v1.9.1/vault-openvpn_linux_amd64.tar.gz
+tar -xvf vault-openvpn_linux_amd64.tar.gz
+mv vault-openvpn_linux_amd64 /usr/local/bin/vault-openvpn
+rm vault-openvpn_linux_amd64.tar.gz
+
+
+if ( vault kv get -field=key secret/ovpn >/dev/null; ); then
+  echo "Keys already exisit"
+    vault kv get -field=key secret/ovpn/server_conf\
+   >/etc/openvpn/server.conf.template
+     vault kv get -field=key secret/ovpn/client_conf\
+   >~/openvpn_client_$TFWS.ovpn;
+     vault kv get -field=key secret/ovpn/linuxclient_conf\
+   >~/openvpn_linuxclient_$TFWS.ovpn;
+else
+  echo "Generating VPN keys"
+  # this key probably should be in the subdir I create when I store the keys.
+  # note this creates a slightly confusing view in vault secrets/
+  # with two openvpn entries
+
+  openvpn --genkey --secret openvpn.key
+  vault kv put secret/ovpn key=@openvpn.key
+
+  # edit server config template
+  cp templates/server.conf /tmp/server.conf
+  sed -i 's/VPC_ACTIVE_SUBNET/'"$VPC_ACTIVE_SUBNET"'/' /tmp/server.conf
+  sed -i 's/VPC_VPN_SUBNET/'"$VPC_VPN_SUBNET"'/' /tmp/server.conf
+  vault-openvpn server vpn.$VPN_DOMAIN \
+    --auto-revoke --pki-mountpoint $VPN_DOMAIN --ovpn-key secret/ovpn \
+    --template-path /tmp/ --log-level debug > /etc/openvpn/server.conf.template
+  # Save config in vault
+  vault kv put secret/ovpn/server_conf\
+   key=@/etc/openvpn/server.conf.template;
+  rm /tmp/server.conf
+
+  # edit client config template
+  cp templates/client.conf /tmp/client.conf
+  sed -i 's/VPN_DOMAIN/'"$VPN_DOMAIN"'/' /tmp/client.conf
+  vault-openvpn client dev.$VPN_DOMAIN \
+    --auto-revoke --pki-mountpoint $VPN_DOMAIN --ovpn-key secret/ovpn \
+    --template-path /tmp/ --log-level debug > /home/alan/openvpn_client_$TFWS.ovpn
+  # Save config in vault
+  vault kv put secret/ovpn/client_conf\
+   key=@/home/alan/openvpn_client_$TFWS.ovpn;
+  rm /tmp/client.conf
+
+  # edit linux config template
+  mkdir /tmp/linuxclient
+  cp templates/linuxclient.conf /tmp/linuxclient/client.conf
+  sed -i 's/VPN_DOMAIN/'"$VPN_DOMAIN"'/' /tmp/linuxclient/client.conf
+  vault-openvpn client dev.$VPN_DOMAIN \
+    --auto-revoke --pki-mountpoint $VPN_DOMAIN --ovpn-key secret/ovpn \
+    --template-path /tmp/linuxclient/ --log-level debug > /home/alan/openvpn_linuxclient_$TFWS.ovpn
+  rm /tmp/linuxclient/client.conf
+  # Save config in vault
+  vault kv put secret/ovpn/linuxclient_conf\
+   key=@/home/alan/openvpn_linuxclient_$TFWS.ovpn;
+  rm openvpn.key
+fi
+
+systemctl restart openvpn-server

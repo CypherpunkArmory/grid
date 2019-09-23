@@ -1,0 +1,10 @@
+- name: Download Vault Binaries
+  get_url:
+    url: https://releases.hashicorp.com/vault/1.0.2/vault_1.0.2_linux_amd64.zip
+    dest: /tmp/vault_1.0.2_linux_amd64.zip
+
+- name: Extract Binaries
+  unarchive:
+    src: /tmp/vault_1.0.2_linux_amd64.zip
+    dest: /usr/bin
+    remote_src: yes

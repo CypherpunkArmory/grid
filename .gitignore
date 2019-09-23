@@ -1,0 +1,17 @@
+*.backup
+.terraform
+planfile
+packer-cache
+.vdi
+.vagrant
+.DS_Store
+tags
+*.box
+*.vmdk
+*.ovf
+Vagrantfile
+*.retry
+metadata.json
+*.py[cod]
+__pycache__/
+.mypy_cache/

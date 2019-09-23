@@ -1,0 +1,35 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: delegated
+lint:
+  name: yamllint
+platforms:
+  - name: city
+provisioner:
+  name: ansible
+  lint:
+    name: ansible-lint
+  inventory:
+    host_vars:
+      city:
+        ansible_python_interpreter: "/usr/bin/python3"
+verifier:
+  name: testinfra
+  lint:
+    name: flake8
+scenario:
+  name: city
+  test_sequence:
+    - lint
+    - destroy
+    - dependency
+    - syntax
+    - create
+    - prepare
+    - converge
+    - idempotence
+    - side_effect
+    - verify
+    - destroy
