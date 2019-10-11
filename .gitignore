@@ -1,5 +1,8 @@
 *.backup
 .terraform
+hookfile
+prehookfile
+posthookfile
 planfile
 packer-cache
 .vdi
