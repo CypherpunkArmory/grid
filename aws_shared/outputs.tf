@@ -50,3 +50,6 @@ output "testpunch_cloudflare_zone" {
   value = cloudflare_zone.holepunch_stg_zone[0].zone
 }
 
+output "userland_zone" {
+  value = aws_route53_zone.userland.zone_id
+}

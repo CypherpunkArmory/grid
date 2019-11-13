@@ -2,6 +2,10 @@ resource "aws_route53_zone" "holepunch" {
   name = "holepunch.io"
 }
 
+resource "aws_route53_zone" "userland" {
+  name = "userland.tech"
+}
+
 resource "aws_route53_zone" "hole_ly" {
   name = "hole.ly"
 }
